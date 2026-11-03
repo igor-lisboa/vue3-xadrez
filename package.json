@@ -33,5 +33,8 @@
   },
   "private": true,
   "type": "module",
-  "description": "Chess game frontend (Vue 3 + TypeScript) for the Xadrez API"
+  "description": "Chess game frontend (Vue 3 + TypeScript) for the Xadrez API",
+  "engines": {
+    "node": ">=20.19.0 || >=22.12.0"
+  }
 }
