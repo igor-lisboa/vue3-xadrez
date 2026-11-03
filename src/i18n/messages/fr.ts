@@ -18,7 +18,6 @@ export const fr: Messages = {
     enterRoom: 'Rejoindre une salle',
     roomPrompt: 'Quelle salle souhaitez-vous rejoindre ?',
     shiftTimes: {
-      none: 'Pas de limite de temps',
       five: '5 minutes',
       ten: '10 minutes',
       fifteen: '15 minutes',

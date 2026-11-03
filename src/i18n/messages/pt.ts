@@ -19,7 +19,6 @@ export const pt: Messages = {
     enterRoom: 'Entrar numa sala',
     roomPrompt: 'Em que sala pretende entrar?',
     shiftTimes: {
-      none: 'Sem limite de tempo',
       five: '5 minutos',
       ten: '10 minutos',
       fifteen: '15 minutos',

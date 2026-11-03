@@ -50,7 +50,7 @@ Texts quoted in this section are the English versions. Each language shows its o
 ### 3.1 Home
 
 - Loads the game types from the API (Human X Human, Human X AI, AI X AI). The label of each button is built from the player types of the two sides.
-- A turn-time selector sits above the buttons. Options: no time limit (default), 5, 10, 15 minutes, 1 hour. The selected value is sent as `tempoDeTurnoEmMilisegundos`.
+- A turn-time selector sits above the buttons. Options: 5 (default), 10, 15 minutes, 1 hour. Games without a time limit are not offered. The selected value is sent as `tempoDeTurnoEmMilisegundos`.
 - Clicking a game type creates a game with that type and the selected turn time:
   - AI X AI: opens the game directly, as side 0 (White).
   - Any other type: opens Select side for the new game.
@@ -84,7 +84,7 @@ Board behaviour:
 - **Check.** The king of the side on turn is shown dark red while that side is in check.
 - **Turn.** When it is the player's turn, the board border is bright green.
 - **AI X AI.** The board cannot be clicked; it only shows the game as it progresses.
-- Each square shows the Unicode symbol of its piece.
+- Each square shows its piece as a picture from the piece set (section 4).
 
 Clocks:
 
@@ -129,7 +129,8 @@ The visual design is kept as it was. Changes to appearance need a deliberate dec
 - **Theme.** Dark page background (Bootstrap `bg-dark`), white text, centred content. The header is the app title, linked to Home, with the language selector on the right (a small dark `form-select` that lists the languages by their own names, see section 6). The footer credits the author and the API repository in light grey.
 - **Typography and buttons.** Bootstrap 5 defaults. Headings are the page title (`h1`), a lead sentence (`lead`), and `h2` for "OR" on Home. Action buttons are large (`btn-lg`) and bold. Choice groups are radio button groups (outlined primary buttons).
 - **Button variants.** Primary actions use light buttons with a white border. Offering a draw is red (`btn-danger`); offering a reset is dark (`btn-dark`).
-- **Board.** 656 px square board with an 8 px rebeccapurple border, rounded corners. Each square is 80 px with a 50 px symbol. Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
+- **Pieces.** All twelve pieces come from one SVG set, `src/assets/pieces/standard.svg` (the Wikimedia "cburnett" set, CC BY-SA 3.0; its license text is in the file). White and black pieces share the same drawing, so they look alike, and the pictures are not font glyphs, so they look the same on every device. The API's Unicode symbols are not used.
+- **Board.** 656 px square board with an 8 px rebeccapurple border, rounded corners. Each square is 80 px with a 66 px piece picture. Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
 - **Spinner.** A light Bootstrap spinner in place of the content while loading.
 - **Clocks.** A list of two Bootstrap list items, 25 % wide, centred, with a blue pill badge showing the time.
 
@@ -145,7 +146,7 @@ The frontend's services, one file per area under `src/api/services/`:
 | --- | --- | --- |
 | Catalogue | `GET /tipos-de-jogo` | Home game types |
 | Catalogue | `GET /tabela-equivalencia` | Square names and positions (A8 first) |
-| Catalogue | `GET /tipos-de-peca` | Piece symbols |
+| Catalogue | `GET /tipos-de-peca` | Piece types, to read the pieces of the board |
 | Catalogue | `GET /tipos-de-peca/promocao-peao` | Promotion choices |
 | Games | `POST /jogos` | Create a game |
 | Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state |
@@ -182,7 +183,7 @@ The frontend's text is available in six languages. The language is chosen with t
 - **Switching.** Changing the language changes all visible text at once, on the current screen. It does not reload the game, and the `lang` attribute of the page is updated.
 - **Where the text lives.** One message file per language under `src/i18n/messages/`. Each file has every key, so a missing translation fails the type check.
 - **API messages.** Error and confirmation messages that come from the API are shown exactly as the API sends them, in Portuguese (for example "Esse lado já foi escolhido"). Translating them would need a change in the API.
-- **Board and clock values** that come from the API stay as received, for example the game type in the information bar.
+- **Board and clock values** that come from the API stay as received. The game type in the information bar is the one exception: the player type names the API sends in Portuguese (`Humano`, `I.A.`) are translated with the player type labels of the language in use.
 
 ### 6.2 Labels translated
 

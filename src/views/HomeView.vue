@@ -11,13 +11,13 @@ import type { ChoiceOption } from '@/components/common/choice'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
-import { AI_VS_AI_GAME_TYPE, NO_TIME_LIMIT, SHIFT_TIME_OPTIONS } from '@/domain/constants'
+import { AI_VS_AI_GAME_TYPE, DEFAULT_SHIFT_TIME_MS, SHIFT_TIME_OPTIONS } from '@/domain/constants'
 import { gameTypeLabel } from '@/domain/labels'
 import { askText } from '@/services/dialogs'
 
 const { messages } = useLocale()
 const router = useRouter()
-const shiftTime = ref<number>(NO_TIME_LIMIT)
+const shiftTime = ref<number>(DEFAULT_SHIFT_TIME_MS)
 const shiftTimeOptions = computed<ChoiceOption<number>[]>(() =>
   SHIFT_TIME_OPTIONS.map((option) => ({
     value: option.value,

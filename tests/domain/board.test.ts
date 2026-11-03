@@ -4,16 +4,12 @@ import type { SimplifiedCell } from '@/api/types/enums'
 import { pieceTypes, squares } from '../helpers/fixtures'
 
 describe('parsePiece', () => {
-  it('reads the white symbol of a white piece', () => {
-    expect(parsePiece('Rei-0', pieceTypes)).toEqual({ name: 'Rei', sideId: 0, symbol: 'W-King' })
+  it('reads the name and side of a white piece', () => {
+    expect(parsePiece('Rei-0', pieceTypes)).toEqual({ name: 'Rei', sideId: 0 })
   })
 
-  it('reads the black symbol of a black piece', () => {
-    expect(parsePiece('Torre-1', pieceTypes)).toEqual({
-      name: 'Torre',
-      sideId: 1,
-      symbol: 'B-Rook',
-    })
+  it('reads the name and side of a black piece', () => {
+    expect(parsePiece('Torre-1', pieceTypes)).toEqual({ name: 'Torre', sideId: 1 })
   })
 
   it('returns null for a piece that is not in the catalogue', () => {
@@ -36,7 +32,7 @@ describe('createBoardHouses', () => {
     expect(houses[0]).toMatchObject({
       house: 'A8',
       color: 'white',
-      piece: { name: 'Rei', sideId: 0, symbol: 'W-King' },
+      piece: { name: 'Rei', sideId: 0 },
       inCheck: false,
     })
     expect(houses[1]).toMatchObject({ house: 'B8', color: 'black', piece: null })

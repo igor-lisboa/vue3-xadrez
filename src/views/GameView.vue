@@ -18,6 +18,7 @@ import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
 import { useTurnClock } from '@/composables/useTurnClock'
 import { AI_VS_AI_GAME_LABEL, NO_TIME_LIMIT } from '@/domain/constants'
+import { translateGameType } from '@/domain/labels'
 import { notify } from '@/services/dialogs'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
@@ -38,6 +39,10 @@ const { houses, selectHouse } = useChessBoard({
 const { whiteMs, blackMs } = useTurnClock(summary, () => void refresh())
 const actions = useRequest()
 const busy = computed(() => actions.pending.value)
+/** The API sends the game type in Portuguese; the header shows it in the language in use. */
+const gameTypeName = computed(() =>
+  translateGameType(summary.value?.tipoJogo ?? '', messages.value.labels.playerTypes),
+)
 
 useGameSocket(props.gameId, props.sideId, {
   opponentJoined: () => {
@@ -82,7 +87,7 @@ onMounted(async () => {
 <template>
   <LoadingSpinner v-if="!summary || busy" :label="messages.common.loading" />
   <template v-else>
-    <div class="alert alert-light" role="alert">{{ summary.id }} | {{ summary.tipoJogo }}</div>
+    <div class="alert alert-light" role="alert">{{ summary.id }} | {{ gameTypeName }}</div>
 
     <ChessBoard
       :houses="houses"

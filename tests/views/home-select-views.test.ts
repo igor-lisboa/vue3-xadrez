@@ -80,17 +80,27 @@ describe('HomeView', () => {
     expect(wrapper.text()).toContain('AI X AI')
   })
 
+  it('offers only timed games, with 5 minutes selected first', async () => {
+    const wrapper = mount(HomeView)
+    await settle()
+    const labels = wrapper.findAll('label').map((label) => label.text())
+    expect(labels).toEqual(['5 minutes', '10 minutes', '15 minutes', '1 hour'])
+    expect((wrapper.findAll('input[type="radio"]')[0]!.element as HTMLInputElement).checked).toBe(
+      true,
+    )
+  })
+
   it('creates a human game with the chosen turn time and asks for a side', async () => {
     vi.mocked(createGame).mockResolvedValue({ id: 9 })
     const wrapper = mount(HomeView)
     await settle()
-    await wrapper.findAll('input[type="radio"]')[1]!.setValue(true)
+    await wrapper.findAll('input[type="radio"]')[2]!.setValue(true)
     await wrapper
       .findAll('button')
       .find((button) => button.text() === 'Human X Human')!
       .trigger('click')
     await settle()
-    expect(createGame).toHaveBeenCalledWith({ tipoJogo: 0, tempoDeTurnoEmMilisegundos: 300000 })
+    expect(createGame).toHaveBeenCalledWith({ tipoJogo: 0, tempoDeTurnoEmMilisegundos: 900000 })
     expect(push).toHaveBeenCalledWith({ name: 'selectSide', params: { id: 9 } })
   })
 

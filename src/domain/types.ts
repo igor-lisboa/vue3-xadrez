@@ -5,8 +5,6 @@ export type BoardColor = 'white' | 'black'
 export interface BoardPiece {
   name: PieceName
   sideId: SideId
-  /** Unicode chess symbol of the piece for its side. */
-  symbol: string
 }
 
 /** One square of the board as the view needs it. */

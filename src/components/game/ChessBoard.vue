@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { MoveName } from '@/api/types/enums'
 import type { BoardHouse } from '@/domain/types'
+import ChessPiece from './ChessPiece.vue'
+import PieceSprite from './PieceSprite.vue'
 import { boardHouseClasses } from './board-house-classes'
 
 const props = defineProps<{
@@ -27,6 +29,7 @@ function houseTitle(house: BoardHouse): string {
     class="chess-board"
     :class="{ 'active-side-border': props.highlightTurn, 'spectator-only': props.spectatorOnly }"
   >
+    <PieceSprite />
     <div
       v-for="(house, index) in houses"
       :key="index"
@@ -34,7 +37,7 @@ function houseTitle(house: BoardHouse): string {
       :title="houseTitle(house)"
       @click="emit('select', index)"
     >
-      {{ house.piece?.symbol }}
+      <ChessPiece v-if="house.piece" :name="house.piece.name" :side-id="house.piece.sideId" />
     </div>
   </div>
 </template>
@@ -65,23 +68,11 @@ function houseTitle(house: BoardHouse): string {
 }
 
 .board-house {
-  color: black;
-  font-weight: bold;
-  text-shadow:
-    2px 0 0 #fff,
-    -2px 0 0 #fff,
-    0 2px 0 #fff,
-    0 -2px 0 #fff,
-    1px 1px #fff,
-    -1px -1px 0 #fff,
-    1px -1px 0 #fff,
-    -1px 1px 0 #fff;
   transition: background-color 0.5s ease;
   cursor: pointer;
   float: left;
   width: 80px;
   height: 80px;
-  font-size: 50px;
   text-align: center;
   display: table-cell;
   vertical-align: middle;

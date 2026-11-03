@@ -18,16 +18,21 @@ export const HUMAN_PLAYER: PlayerTypeId = 0
 export const AI_VS_AI_GAME_LABEL = 'I.A. X I.A.'
 
 /** Names the turn time options; the texts for each language are in the message files. */
-export type ShiftTimeKey = 'none' | 'five' | 'ten' | 'fifteen' | 'hour'
+export type ShiftTimeKey = 'five' | 'ten' | 'fifteen' | 'hour'
 
 export interface ShiftTimeOption {
   value: number
   key: ShiftTimeKey
 }
 
+/**
+ * Turn time selected when Home opens. Games without a time limit are not offered,
+ * so every game the frontend creates has clocks.
+ */
+export const DEFAULT_SHIFT_TIME_MS = 5 * 60_000
+
 export const SHIFT_TIME_OPTIONS: ShiftTimeOption[] = [
-  { value: NO_TIME_LIMIT, key: 'none' },
-  { value: 5 * 60_000, key: 'five' },
+  { value: DEFAULT_SHIFT_TIME_MS, key: 'five' },
   { value: 10 * 60_000, key: 'ten' },
   { value: 15 * 60_000, key: 'fifteen' },
   { value: 60 * 60_000, key: 'hour' },

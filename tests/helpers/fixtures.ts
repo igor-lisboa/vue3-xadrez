@@ -3,12 +3,12 @@ import type { SimplifiedCell, SquareName } from '@/api/types/enums'
 import type { GameSummary } from '@/api/types/game-summary'
 
 export const pieceTypes: PieceType[] = [
-  { id: 0, nome: 'Rei', classe: 'Rei', unicodeBranco: 'W-King', unicodePreto: 'B-King' },
-  { id: 1, nome: 'Rainha', classe: 'Rainha', unicodeBranco: 'W-Queen', unicodePreto: 'B-Queen' },
-  { id: 2, nome: 'Torre', classe: 'Torre', unicodeBranco: 'W-Rook', unicodePreto: 'B-Rook' },
-  { id: 3, nome: 'Bispo', classe: 'Bispo', unicodeBranco: 'W-Bishop', unicodePreto: 'B-Bishop' },
-  { id: 4, nome: 'Cavalo', classe: 'Cavalo', unicodeBranco: 'W-Knight', unicodePreto: 'B-Knight' },
-  { id: 5, nome: 'Peão', classe: 'Peao', unicodeBranco: 'W-Pawn', unicodePreto: 'B-Pawn' },
+  { id: 0, nome: 'Rei', classe: 'Rei' },
+  { id: 1, nome: 'Rainha', classe: 'Rainha' },
+  { id: 2, nome: 'Torre', classe: 'Torre' },
+  { id: 3, nome: 'Bispo', classe: 'Bispo' },
+  { id: 4, nome: 'Cavalo', classe: 'Cavalo' },
+  { id: 5, nome: 'Peão', classe: 'Peao' },
 ]
 
 /** 64 squares, A8 first, as the API sends them. */

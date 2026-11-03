@@ -18,7 +18,6 @@ export const en: Messages = {
     enterRoom: 'Enter a room',
     roomPrompt: 'Which room do you want to enter?',
     shiftTimes: {
-      none: 'No time limit',
       five: '5 minutes',
       ten: '10 minutes',
       fifteen: '15 minutes',

@@ -4,6 +4,7 @@ import ActionButton from '@/components/common/ActionButton.vue'
 import ChoiceGroup from '@/components/common/ChoiceGroup.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ChessBoard from '@/components/game/ChessBoard.vue'
+import ChessPiece from '@/components/game/ChessPiece.vue'
 import ClockPanel from '@/components/game/ClockPanel.vue'
 import GameActions from '@/components/game/GameActions.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
@@ -99,6 +100,16 @@ describe('LanguageSelect', () => {
   })
 })
 
+describe('ChessPiece', () => {
+  it('uses the same picture box for white and black pieces', () => {
+    const white = mount(ChessPiece, { props: { name: 'Peão', sideId: 0 } })
+    const black = mount(ChessPiece, { props: { name: 'Peão', sideId: 1 } })
+    expect(white.attributes('viewBox')).toBe(black.attributes('viewBox'))
+    expect(white.find('use').attributes('href')).toBe('#wp')
+    expect(black.find('use').attributes('href')).toBe('#bp')
+  })
+})
+
 describe('ChessBoard', () => {
   const houses = () => {
     const built = createBoardHouses(['Rei-0', null], squares, pieceTypes, null)
@@ -106,7 +117,7 @@ describe('ChessBoard', () => {
     return built
   }
 
-  it('draws the piece symbols and the highlight classes', () => {
+  it('draws the piece pictures from the sprite and the highlight classes', () => {
     const wrapper = mount(ChessBoard, {
       props: {
         houses: houses(),
@@ -115,8 +126,10 @@ describe('ChessBoard', () => {
         moveLabels: en.labels.moves,
       },
     })
+    expect(wrapper.find('.piece-sprite').html()).toContain('id="wk"')
     const cells = wrapper.findAll('.board-house')
-    expect(cells[0]?.text()).toBe('W-King')
+    expect(cells[0]?.find('use').attributes('href')).toBe('#wk')
+    expect(cells[1]?.find('use').exists()).toBe(false)
     expect(cells[0]?.classes()).toEqual(expect.arrayContaining(['house-white']))
     expect(cells[1]?.classes()).toEqual(expect.arrayContaining(['house-move', 'house-capture']))
     expect(cells[1]?.attributes('title')).toBe('B8 | Knight move')

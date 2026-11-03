@@ -17,10 +17,9 @@ export interface GameType {
   integranteLadoTipo: [PlayerType, PlayerType]
 }
 
+/** Only the fields the frontend reads; the API's Unicode symbols are not used. */
 export interface PieceType {
   id: number
   nome: PieceName
   classe: string
-  unicodeBranco: string
-  unicodePreto: string
 }

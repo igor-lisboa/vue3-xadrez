@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { gameTypeLabel } from '@/domain/labels'
+import { gameTypeLabel, translateGameType } from '@/domain/labels'
 import { orientForSide } from '@/domain/orientation'
 import { en } from '@/i18n/messages/en'
 import { gameTypes } from '../helpers/fixtures'
+
+describe('translateGameType', () => {
+  it('translates the player types the API sends in Portuguese', () => {
+    expect(translateGameType('Humano X I.A.', en.labels.playerTypes)).toBe('Human X AI')
+    expect(translateGameType('I.A. X I.A.', en.labels.playerTypes)).toBe('AI X AI')
+    expect(translateGameType('Humano X Humano', { 0: 'Humano', 1: 'IA' })).toBe('Humano X Humano')
+  })
+
+  it('keeps names it does not know as the API sent them', () => {
+    expect(translateGameType('Robô X Humano', en.labels.playerTypes)).toBe('Robô X Human')
+  })
+})
 
 describe('labels', () => {
   it('names a game type by its players, in the labels given', () => {

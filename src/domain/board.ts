@@ -13,11 +13,7 @@ export function parsePiece(cell: SimplifiedCell, pieces: readonly PieceType[]): 
     return null
   }
   const sideId: SideId = side === '0' ? WHITE : 1
-  return {
-    name,
-    sideId,
-    symbol: sideId === WHITE ? piece.unicodeBranco : piece.unicodePreto,
-  }
+  return { name, sideId }
 }
 
 /** Light squares are where row and column have the same parity. */

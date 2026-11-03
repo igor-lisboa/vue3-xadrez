@@ -18,7 +18,6 @@ export const de: Messages = {
     enterRoom: 'Raum betreten',
     roomPrompt: 'Welchen Raum möchtest du betreten?',
     shiftTimes: {
-      none: 'Keine Zeitbegrenzung',
       five: '5 Minuten',
       ten: '10 Minuten',
       fifteen: '15 Minuten',
