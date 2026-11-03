@@ -1,11 +1,14 @@
+<script setup lang="ts">
+import AppFooter from '@/components/layout/AppFooter.vue'
+import { env } from '@/config/env'
+</script>
+
 <template>
   <div class="d-flex h-100 text-center text-white bg-dark">
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <header class="mb-auto row">
         <router-link :to="{ name: 'home' }">
-          <h3 class="float-md-start mb-0 text-white">
-            {{ vueAppTitle }}
-          </h3>
+          <h3 class="float-md-start mb-0 text-white">{{ env.appTitle }}</h3>
         </router-link>
       </header>
 
@@ -13,41 +16,7 @@
         <router-view />
       </main>
 
-      <footer class="mt-auto text-white-50">
-        <p class="mt-3">
-          Desenvolvido por
-          <a
-            href="https://github.com/igor-lisboa"
-            target="_blank"
-            class="text-white"
-            >Igor Lisbôa</a
-          >, usando a API <a class="text-white" href="https://github.com/igor-lisboa/tcc00339-gpms-xadrez-backend" target="_blank" rel="noopener noreferrer">tcc00339-gpms-xadrez-backend</a>.
-        </p>
-      </footer>
+      <AppFooter />
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from "vue";
-export default defineComponent({
-  name: "App",
-  setup: () => {
-    const vueAppTitle = import.meta.env.VITE_APP_TITLE?.toString();
-    return { vueAppTitle };
-  },
-});
-</script>
-<style>
-html,
-body,
-#app {
-  height: 100%;
-  width: 100%;
-  margin: 0px;
-  padding: 0px;
-}
-
-#app {
-  display: grid;
-}
-</style>

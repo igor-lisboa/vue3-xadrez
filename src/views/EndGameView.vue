@@ -1,0 +1,62 @@
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { proposeToOpponent } from '@/api/services/proposals'
+import type { SideId } from '@/api/types/enums'
+import ActionButton from '@/components/common/ActionButton.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { useGameSocket } from '@/composables/useGameSocket'
+import { useGameState } from '@/composables/useGameState'
+import { useRequest } from '@/composables/useRequest'
+import { ENDING_LABELS } from '@/domain/labels'
+import { notify } from '@/services/dialogs'
+
+const props = defineProps<{ gameId: number; sideId: SideId }>()
+
+const router = useRouter()
+const { summary, refresh } = useGameState(props.gameId, props.sideId)
+const proposal = useRequest()
+const busy = computed(() => proposal.pending.value)
+const endingText = computed(() =>
+  summary.value?.finalizado ? ENDING_LABELS[summary.value.finalizado] : '',
+)
+
+async function goToGame(): Promise<void> {
+  await router.push({ name: 'game', params: { id: props.gameId, sideId: props.sideId } })
+}
+
+function goHome(): void {
+  void router.push({ name: 'home' })
+}
+
+// A new proposal or an answer means the game goes on, so the player returns to the game.
+useGameSocket(props.gameId, props.sideId, {
+  drawProposed: goToGame,
+  drawAnswered: goToGame,
+  resetProposed: goToGame,
+  resetAnswered: goToGame,
+})
+
+async function proposeReset(): Promise<void> {
+  const message = await proposal.perform(() =>
+    proposeToOpponent(props.gameId, props.sideId, 'reset'),
+  )
+  if (message !== undefined) {
+    notify(message)
+  }
+  await goToGame()
+}
+
+onMounted(() => void refresh())
+</script>
+
+<template>
+  <LoadingSpinner v-if="busy" />
+  <template v-else>
+    <h1>{{ endingText }}</h1>
+    <div class="btn-group" role="group">
+      <ActionButton class="mt-3" @click="goHome">New game?</ActionButton>
+      <ActionButton class="mt-3" variant="dark" @click="proposeReset">Propose reset</ActionButton>
+    </div>
+  </template>
+</template>
