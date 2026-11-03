@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { env } from '@/config/env'
+import { locale } from '@/services/locale'
 import { ApiConfigurationError, UnexpectedResponseError } from './api-errors'
 
 /** Shared HTTP client for the API. */
@@ -10,6 +11,9 @@ http.interceptors.request.use((config) => {
   if (!env.apiBaseUrl) {
     throw new ApiConfigurationError()
   }
+  // The API answers its messages in the language the player chose. The language tags
+  // (en, pt-BR, pt, fr, it, de) are the standard form of Accept-Language.
+  config.headers.set('Accept-Language', locale.value)
   return config
 })
 

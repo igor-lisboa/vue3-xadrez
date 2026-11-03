@@ -4,6 +4,7 @@ import { http } from '@/api/http'
 import { ApiConfigurationError, UnexpectedResponseError } from '@/api/api-errors'
 import { getErrorMessage } from '@/api/errors'
 import { en } from '@/i18n/messages/en'
+import { setLocale } from '@/services/locale'
 
 const { env } = vi.hoisted(() => ({
   env: { apiBaseUrl: 'http://api.test', appTitle: 'Chess' },
@@ -22,6 +23,21 @@ describe('http client', () => {
       adapter: answerWith({ message: 'ok', data: [], success: true }),
     })
     expect(response.data).toEqual({ message: 'ok', data: [], success: true })
+  })
+
+  it('tells the API the language the player chose', async () => {
+    let sent: unknown
+    const adapter: AxiosAdapter = async (config) => {
+      sent = config.headers.get('Accept-Language')
+      return answerWith({ message: 'ok', data: [], success: true })(config)
+    }
+    setLocale('pt-BR')
+    try {
+      await http.get('/tipos-de-jogo', { adapter })
+    } finally {
+      setLocale('en')
+    }
+    expect(sent).toBe('pt-BR')
   })
 
   it('refuses an answer that is not the JSON envelope', async () => {

@@ -50,7 +50,7 @@ Texts quoted in this section are the English versions. Each language shows its o
 ### 3.1 Home
 
 - Loads the game types from the API (Human X Human, Human X AI, AI X AI). The label of each button is built from the player types of the two sides.
-- A turn-time selector sits above the buttons. Options: 5 (default), 10, 15 minutes, 1 hour. Games without a time limit are not offered. The selected value is sent as `tempoDeTurnoEmMilisegundos`.
+- A turn-time selector sits above the buttons. Options: 5 (default), 10, 15 minutes. Games without a time limit are not offered. The selected value is sent as `tempoDeTurnoEmMilisegundos`.
 - Clicking a game type creates a game with that type and the selected turn time:
   - AI X AI: opens the game directly, as side 0 (White).
   - Any other type: opens Select side for the new game.
@@ -167,6 +167,8 @@ The frontend's services, one file per area under `src/api/services/`:
 
 Player actions identify the acting side with the `lado` header (0 or 1).
 
+Every request sends the `Accept-Language` header with the language the player chose (`en`, `pt-BR`, `pt`, `fr`, `it` or `de`), so the API can answer its messages in that language.
+
 Requested actions in a game state (`acoesSolicitadas`) drive the screen rules: `responderPropostaEmpate`, `responderPropostaReset`, `promocaoPeao`.
 
 ## 6. Language and labels
@@ -187,7 +189,7 @@ The frontend's text is available in six languages. The language is chosen with t
 - **Choice.** The choice is kept in the browser (`localStorage`, key `chess.locale`), so it survives a reload. Without a stored choice, the frontend uses the first browser language it supports (for example `pt-PT` gives Português (Portugal), `fr-CA` gives Français) and falls back to English.
 - **Switching.** Changing the language changes all visible text at once, on the current screen. It does not reload the game, and the `lang` attribute of the page is updated.
 - **Where the text lives.** One message file per language under `src/i18n/messages/`. Each file has every key, so a missing translation fails the type check.
-- **API messages.** Error and confirmation messages that come from the API are shown exactly as the API sends them, in Portuguese (for example "Esse lado já foi escolhido"). Translating them would need a change in the API.
+- **API messages.** Error and confirmation messages that come from the API are shown exactly as the API sends them. The frontend tells the API the language in use with the `Accept-Language` header (section 5); the API answers in that language when it supports it, and in Portuguese (for example "Esse lado já foi escolhido") when it does not.
 - **Board and clock values** that come from the API stay as received. The game type in the information bar is the one exception: the player type names the API sends in Portuguese (`Humano`, `I.A.`) are translated with the player type labels of the language in use.
 
 ### 6.2 Labels translated
@@ -250,5 +252,5 @@ The socket is closed when the screen is left.
 
 - The deployed API is behind Vercel deployment protection, which redirects anonymous requests to a login page. Until the protection is disabled, the frontend cannot reach the API from a browser.
 - The API's castling check does not verify the squares the king passes through (a known deviation documented in the API).
-- The API messages are in Portuguese and are not translated (section 6.1).
+- The API messages are translated only if the API answers in the language sent in `Accept-Language` (sections 5 and 6.1). Until it does, they stay in Portuguese.
 - The socket events are not in the OpenAPI description. If the API changes them, update `src/api/socket-events.ts` and section 7.

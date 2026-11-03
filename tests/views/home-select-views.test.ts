@@ -84,7 +84,7 @@ describe('HomeView', () => {
     const wrapper = mount(HomeView)
     await settle()
     const labels = wrapper.findAll('label').map((label) => label.text())
-    expect(labels).toEqual(['5 minutes', '10 minutes', '15 minutes', '1 hour'])
+    expect(labels).toEqual(['5 minutes', '10 minutes', '15 minutes'])
     expect((wrapper.findAll('input[type="radio"]')[0]!.element as HTMLInputElement).checked).toBe(
       true,
     )

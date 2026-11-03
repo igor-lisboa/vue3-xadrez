@@ -25,7 +25,6 @@ export const fr: Messages = {
       five: '5 minutes',
       ten: '10 minutes',
       fifteen: '15 minutes',
-      hour: '1 heure',
     },
   },
   selectSide: {

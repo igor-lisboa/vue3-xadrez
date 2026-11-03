@@ -18,7 +18,7 @@ export const HUMAN_PLAYER: PlayerTypeId = 0
 export const AI_VS_AI_GAME_LABEL = 'I.A. X I.A.'
 
 /** Names the turn time options; the texts for each language are in the message files. */
-export type ShiftTimeKey = 'five' | 'ten' | 'fifteen' | 'hour'
+export type ShiftTimeKey = 'five' | 'ten' | 'fifteen'
 
 export interface ShiftTimeOption {
   value: number
@@ -35,5 +35,4 @@ export const SHIFT_TIME_OPTIONS: ShiftTimeOption[] = [
   { value: DEFAULT_SHIFT_TIME_MS, key: 'five' },
   { value: 10 * 60_000, key: 'ten' },
   { value: 15 * 60_000, key: 'fifteen' },
-  { value: 60 * 60_000, key: 'hour' },
 ]
