@@ -11,6 +11,10 @@ export const fr: Messages = {
     developedBy: 'Développé par',
     usingApi: 'en utilisant l’API',
   },
+  install: {
+    button: 'Installer l’application',
+    iosHint: 'Pour installer, touchez Partager puis Sur l’écran d’accueil.',
+  },
   home: {
     title: 'Bonjour',
     lead: 'Cliquez sur l’option souhaitée pour les types de joueurs et le temps de réflexion.',

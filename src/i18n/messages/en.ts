@@ -11,6 +11,10 @@ export const en: Messages = {
     developedBy: 'Developed by',
     usingApi: 'using the API',
   },
+  install: {
+    button: 'Install app',
+    iosHint: 'To install, tap Share and then Add to Home Screen.',
+  },
   home: {
     title: 'Hello',
     lead: 'Click the option you want for the player types and the turn time.',

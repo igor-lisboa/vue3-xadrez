@@ -11,6 +11,10 @@ export const it: Messages = {
     developedBy: 'Sviluppato da',
     usingApi: 'utilizzando l’API',
   },
+  install: {
+    button: 'Installa l’app',
+    iosHint: 'Per installare, tocca Condividi e poi Aggiungi a Home.',
+  },
   home: {
     title: 'Ciao',
     lead: 'Clicca sull’opzione desiderata per i tipi di giocatore e il tempo di gioco.',

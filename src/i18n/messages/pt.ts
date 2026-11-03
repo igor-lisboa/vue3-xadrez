@@ -12,6 +12,10 @@ export const pt: Messages = {
     developedBy: 'Desenvolvido por',
     usingApi: 'a usar a API',
   },
+  install: {
+    button: 'Instalar aplicação',
+    iosHint: 'Para instalar, toque em Partilhar e depois em Adicionar ao ecrã principal.',
+  },
   home: {
     title: 'Olá',
     lead: 'Clique na opção pretendida para os tipos de jogador e o tempo por jogada.',

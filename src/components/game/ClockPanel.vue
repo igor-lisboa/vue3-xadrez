@@ -12,7 +12,7 @@ defineProps<{
 
 <template>
   <div class="mt-3">
-    <ul class="list-group w-25 m-auto">
+    <ul class="list-group clock-list m-auto">
       <li class="list-group-item d-flex justify-content-between align-items-center">
         {{ labels[0] }}
         <span class="badge bg-primary rounded-pill">{{ formatClock(whiteMs) }}</span>
@@ -24,3 +24,16 @@ defineProps<{
     </ul>
   </div>
 </template>
+
+<style scoped>
+.clock-list {
+  width: 25%;
+}
+
+/* Bootstrap's sm breakpoint: below it the clocks use the full width of the phone screen. */
+@media (max-width: 575.98px) {
+  .clock-list {
+    width: 100%;
+  }
+}
+</style>

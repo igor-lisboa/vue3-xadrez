@@ -11,6 +11,10 @@ export const de: Messages = {
     developedBy: 'Entwickelt von',
     usingApi: 'unter Verwendung der API',
   },
+  install: {
+    button: 'App installieren',
+    iosHint: 'Zum Installieren tippen Sie auf Teilen und dann auf Zum Home-Bildschirm.',
+  },
   home: {
     title: 'Hallo',
     lead: 'Klicke auf die gewünschte Option für die Spielertypen und die Bedenkzeit.',

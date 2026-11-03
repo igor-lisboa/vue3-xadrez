@@ -23,6 +23,10 @@ export interface Messages {
     developedBy: string
     usingApi: string
   }
+  install: {
+    button: string
+    iosHint: string
+  }
   home: {
     title: string
     lead: string

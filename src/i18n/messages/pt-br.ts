@@ -11,6 +11,10 @@ export const ptBR: Messages = {
     developedBy: 'Desenvolvido por',
     usingApi: 'usando a API',
   },
+  install: {
+    button: 'Instalar aplicativo',
+    iosHint: 'Para instalar, toque em Compartilhar e depois em Adicionar à Tela de Início.',
+  },
   home: {
     title: 'Olá',
     lead: 'Clique na opção desejada para os tipos de jogador e o tempo de turno.',

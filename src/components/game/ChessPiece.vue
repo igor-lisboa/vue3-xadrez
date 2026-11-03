@@ -15,10 +15,12 @@ const props = defineProps<{
 </template>
 
 <style scoped>
+/* Centred in the square, leaving a margin of about 9 % on each side. */
 .piece {
-  display: block;
-  width: 66px;
-  height: 66px;
-  margin: 6px auto;
+  position: absolute;
+  top: 9%;
+  left: 9%;
+  width: 82%;
+  height: 82%;
 }
 </style>

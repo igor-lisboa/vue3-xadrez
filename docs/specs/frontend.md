@@ -130,11 +130,16 @@ The visual design is kept as it was. Changes to appearance need a deliberate dec
 - **Typography and buttons.** Bootstrap 5 defaults. Headings are the page title (`h1`), a lead sentence (`lead`), and `h2` for "OR" on Home. Action buttons are large (`btn-lg`) and bold. Choice groups are radio button groups (outlined primary buttons).
 - **Button variants.** Primary actions use light buttons with a white border. Offering a draw is red (`btn-danger`); offering a reset is dark (`btn-dark`).
 - **Pieces.** All twelve pieces come from one SVG set, `src/assets/pieces/standard.svg` (the Wikimedia "cburnett" set, CC BY-SA 3.0; its license text is in the file). White and black pieces share the same drawing, so they look alike, and the pictures are not font glyphs, so they look the same on every device. The API's Unicode symbols are not used.
-- **Board.** 656 px square board with an 8 px rebeccapurple border, rounded corners. Each square is 80 px with a 66 px piece picture. Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
+- **Board.** Square board with an 8 px rebeccapurple border, rounded corners. It is 656 px wide on large screens and shrinks to the screen width on phones (the 8 × 8 squares and the pictures scale with it). Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
 - **Spinner.** A light Bootstrap spinner in place of the content while loading.
-- **Clocks.** A list of two Bootstrap list items, 25 % wide, centred, with a blue pill badge showing the time.
-
-Known layout limitation: the board is a fixed 656 px. It does not scale down on phones. Changing this is a visual change and is not part of the current scope.
+- **Clocks.** A list of two Bootstrap list items, centred, with a blue pill badge showing the time. 25 % wide on screens wider than 576 px, full width on phones.
+- **Actions.** Resign and Offer draw sit side by side on wider screens and stacked, full width, on phones.
+- **Phones.** Layout works from 320 px wide with a 16 px gutter on each side and no horizontal scrolling. Taps on squares do not wait for double-tap zoom, and long presses do not select the text of the board.
+- **Install.** The app can be installed on the home screen as a web app (PWA). Installing needs no app store. See the install rules below.
+- **Install rules.** The app ships a web app manifest (name, icons, standalone display) and a service worker. The service worker stores the app's own files so the app opens when the connection is slow. It never stores API answers: game data always comes from the server.
+  - On browsers that allow installing (Chrome and Edge on Android and desktop), an **Install app** button is shown at the bottom of every screen until the app is installed. It opens the browser's install dialog.
+  - On iPhone and iPad (Safari has no install dialog), the button is replaced by a short hint: tap Share, then Add to Home Screen.
+  - Once the app runs from the home screen, neither the button nor the hint is shown.
 
 ## 5. API contract used by the frontend
 
@@ -239,12 +244,11 @@ The socket is closed when the screen is left.
 - **Structure.** Source files under 300 lines. One responsibility per file. Pure rules live in `src/domain/` and do not import Vue or HTTP code.
 - **Tests.** Each domain function, service, composable, component and view has tests. Coverage thresholds (lines 90 %, functions 90 %, branches 85 %, statements 90 %) are enforced by `npm run test:coverage`.
 - **Build.** `npm run build` type-checks and builds without errors.
-- **Browsers.** Current versions of Chrome, Edge, Firefox and Safari.
+- **Browsers.** Current versions of Chrome, Edge, Firefox and Safari, on desktop, Android and iOS.
 
 ## 10. Open points
 
 - The deployed API is behind Vercel deployment protection, which redirects anonymous requests to a login page. Until the protection is disabled, the frontend cannot reach the API from a browser.
 - The API's castling check does not verify the squares the king passes through (a known deviation documented in the API).
 - The API messages are in Portuguese and are not translated (section 6.1).
-- The board is not responsive (section 4).
 - The socket events are not in the OpenAPI description. If the API changes them, update `src/api/socket-events.ts` and section 7.

@@ -7,10 +7,27 @@ const emit = defineEmits<{ resign: []; proposeDraw: [] }>()
 </script>
 
 <template>
-  <div class="btn-group" role="group">
-    <ActionButton class="mt-3" @click="emit('resign')">{{ labels.resign }}</ActionButton>
-    <ActionButton class="mt-3" variant="danger" @click="emit('proposeDraw')">
+  <div class="game-actions mt-3">
+    <ActionButton class="w-100" @click="emit('resign')">{{ labels.resign }}</ActionButton>
+    <ActionButton class="w-100" variant="danger" @click="emit('proposeDraw')">
       {{ labels.offerDraw }}
     </ActionButton>
   </div>
 </template>
+
+<style scoped>
+/* Side by side on larger screens; stacked, full width, on phones. */
+.game-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  width: min(100%, 420px);
+  margin: auto;
+}
+
+@media (max-width: 575.98px) {
+  .game-actions {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

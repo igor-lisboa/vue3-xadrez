@@ -11,7 +11,7 @@ const groupId = useId()
 </script>
 
 <template>
-  <div class="btn-group" role="group">
+  <div class="btn-group choice-group" role="group">
     <template v-for="(option, index) in options" :key="String(option.value)">
       <input
         :id="`${groupId}-${index}`"
@@ -27,3 +27,11 @@ const groupId = useId()
     </template>
   </div>
 </template>
+
+<style scoped>
+/* Options wrap onto a second line when the screen is too narrow for them all. */
+.choice-group {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+</style>

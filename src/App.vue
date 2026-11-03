@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import LanguageSelect from '@/components/layout/LanguageSelect.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import InstallAppButton from '@/components/layout/InstallAppButton.vue'
 import { env } from '@/config/env'
+import { useInstallPrompt } from '@/composables/useInstallPrompt'
 import { useLocale } from '@/composables/useLocale'
 import { isLocale } from '@/i18n/locales'
 
 const { locale, messages, setLocale, options } = useLocale()
+const { canInstall, showIosHint, install } = useInstallPrompt()
 
 function onLanguageChange(value: string): void {
   if (isLocale(value)) {
@@ -29,9 +32,18 @@ function onLanguageChange(value: string): void {
         />
       </header>
 
-      <main class="px-3 mt-3">
+      <!-- Phones keep only the gutter of the container; wider screens also pad the page content. -->
+      <main class="px-md-3 mt-3">
         <router-view />
       </main>
+
+      <InstallAppButton
+        v-if="canInstall || showIosHint"
+        :can-install="canInstall"
+        :show-ios-hint="showIosHint"
+        :labels="messages.install"
+        @install="install"
+      />
 
       <AppFooter
         :developed-by="messages.footer.developedBy"

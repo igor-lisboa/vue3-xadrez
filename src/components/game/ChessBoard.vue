@@ -43,12 +43,19 @@ function houseTitle(house: BoardHouse): string {
 </template>
 
 <style scoped>
+/* The board fills its column up to 656 px, so it fits phone screens without scrolling sideways. */
 .chess-board {
-  width: 656px;
-  height: 656px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 656px;
   margin: auto;
   border: 8px solid rebeccapurple;
   border-radius: 15px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  /* A long press on the board must not select its text. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .active-side-border {
@@ -68,14 +75,14 @@ function houseTitle(house: BoardHouse): string {
 }
 
 .board-house {
+  position: relative;
+  /* Squares are square at any width; the piece picture is placed inside them. */
+  aspect-ratio: 1;
   transition: background-color 0.5s ease;
   cursor: pointer;
-  float: left;
-  width: 80px;
-  height: 80px;
-  text-align: center;
-  display: table-cell;
-  vertical-align: middle;
+  /* Taps act at once instead of waiting for a double-tap zoom. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   border: 0.5px solid black;
 }
 
