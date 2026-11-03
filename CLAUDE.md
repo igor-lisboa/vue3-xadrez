@@ -4,7 +4,7 @@ Guidance for Claude Code (and developers) working in this repository.
 
 ## What this is
 
-A Vue 3 + TypeScript frontend for a chess game. It talks to the Xadrez API (see `.env.example` for the URL and `docs/specs/frontend.md` for the contract and the behaviour of every screen).
+A Vue 3 + TypeScript frontend for a chess game. It talks to the Chess API (see `.env.example` for the URL and `docs/specs/frontend.md` for the contract and the behaviour of every screen).
 
 ## Commands
 

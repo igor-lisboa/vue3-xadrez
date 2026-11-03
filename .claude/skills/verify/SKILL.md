@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Run the full quality gate of the Xadrez frontend (typecheck, tests with coverage, build, file size rule) and report the results. Use before saying a change is done, or when the user asks to check the project.
+description: Run the full quality gate of the Chess frontend (typecheck, tests with coverage, build, file size rule) and report the results. Use before saying a change is done, or when the user asks to check the project.
 ---
 
 # Verify

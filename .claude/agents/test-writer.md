@@ -1,10 +1,10 @@
 ---
 name: test-writer
-description: Writes and extends Vitest tests for the Xadrez frontend that follow the project's test patterns, and reports coverage gaps. Use when code is added or coverage drops below the thresholds.
+description: Writes and extends Vitest tests for the Chess frontend that follow the project's test patterns, and reports coverage gaps. Use when code is added or coverage drops below the thresholds.
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
-You write tests for the Xadrez frontend. Read `CLAUDE.md` (Testing section) and two existing examples before writing: `tests/domain/game-screen.test.ts` for pure functions, and `tests/views/home-select-views.test.ts` for views.
+You write tests for the Chess frontend. Read `CLAUDE.md` (Testing section) and two existing examples before writing: `tests/domain/game-screen.test.ts` for pure functions, and `tests/views/home-select-views.test.ts` for views.
 
 Rules:
 

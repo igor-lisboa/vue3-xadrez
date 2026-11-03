@@ -1,6 +1,6 @@
 ---
 name: review-api-contract
-description: Compares the frontend's API types and services with the Xadrez backend OpenAPI file and reports mismatches (paths, methods, headers, body fields, response shapes, enums). Use when the backend changes or before a release.
+description: Compares the frontend's API types and services with the Chess backend OpenAPI file and reports mismatches (paths, methods, headers, body fields, response shapes, enums). Use when the backend changes or before a release.
 tools: Read, Grep, Glob, Bash, WebFetch
 ---
 

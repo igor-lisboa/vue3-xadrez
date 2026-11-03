@@ -1,6 +1,6 @@
 ---
 name: add-api-call
-description: Add or change a call to the Xadrez API in the frontend (typed schema, service function, tests, spec section 5). Use when a screen needs a new endpoint or an existing endpoint changes.
+description: Add or change a call to the Chess API in the frontend (typed schema, service function, tests, spec section 5). Use when a screen needs a new endpoint or an existing endpoint changes.
 ---
 
 # Add an API call

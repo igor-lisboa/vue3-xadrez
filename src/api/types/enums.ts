@@ -1,4 +1,4 @@
-// Wire values of the Xadrez API. Names are kept in Portuguese because the API sends them that way.
+// Wire values of the Chess API. Names are kept in Portuguese because the API sends them that way.
 
 /** 0 is Branco (white), 1 is Preto (black). */
 export type SideId = 0 | 1

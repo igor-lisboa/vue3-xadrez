@@ -1,6 +1,6 @@
-# Xadrez Frontend
+# Chess Frontend
 
-Web client for a chess game. Players create a game against another human or against the AI, pick a turn time limit, and play move by move. The game state lives in the [Xadrez API](https://github.com/igor-lisboa/tcc00339-gpms-xadrez-backend), and this app shows it and sends the players' actions.
+Web client for a chess game. Players create a game against another human or against the AI, pick a turn time limit, and play move by move. The game state lives in the [Chess API](https://github.com/igor-lisboa/tcc00339-gpms-xadrez-backend), and this app shows it and sends the players' actions.
 
 Built with Vue 3, TypeScript, Vite, Bootstrap 5 and socket.io for live updates.
 
@@ -38,7 +38,7 @@ Set in `.env` (see [.env.example](.env.example)):
 | Variable | Description |
 | --- | --- |
 | `VITE_APP_TITLE` | Title shown in the header |
-| `VITE_API_BASE_URL` | Base URL of the Xadrez API. Its Swagger documentation is served at `/docs` |
+| `VITE_API_BASE_URL` | Base URL of the Chess API. Its Swagger documentation is served at `/docs` |
 
 The API must be reachable from the browser. The Vercel deployment used by default may require a Vercel login when deployment protection is enabled; disable that protection (or point `VITE_API_BASE_URL` to another deployment) for the app to work.
 

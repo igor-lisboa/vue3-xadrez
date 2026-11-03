@@ -1,6 +1,6 @@
 ---
 name: add-screen
-description: Add a new screen (route, view, composables, tests, spec entry) to the Xadrez frontend following the project's layering. Use when the user asks for a new page or screen.
+description: Add a new screen (route, view, composables, tests, spec entry) to the Chess frontend following the project's layering. Use when the user asks for a new page or screen.
 ---
 
 # Add a screen
