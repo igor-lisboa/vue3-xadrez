@@ -17,15 +17,18 @@ export const HUMAN_PLAYER: PlayerTypeId = 0
 /** Player types string the API sends for an AI vs AI game (see GameSummary.tipoJogo). */
 export const AI_VS_AI_GAME_LABEL = 'I.A. X I.A.'
 
+/** Names the turn time options; the texts for each language are in the message files. */
+export type ShiftTimeKey = 'none' | 'five' | 'ten' | 'fifteen' | 'hour'
+
 export interface ShiftTimeOption {
   value: number
-  label: string
+  key: ShiftTimeKey
 }
 
 export const SHIFT_TIME_OPTIONS: ShiftTimeOption[] = [
-  { value: NO_TIME_LIMIT, label: 'No time limit' },
-  { value: 5 * 60_000, label: '5 minutes' },
-  { value: 10 * 60_000, label: '10 minutes' },
-  { value: 15 * 60_000, label: '15 minutes' },
-  { value: 60 * 60_000, label: '1 hour' },
+  { value: NO_TIME_LIMIT, key: 'none' },
+  { value: 5 * 60_000, key: 'five' },
+  { value: 10 * 60_000, key: 'ten' },
+  { value: 15 * 60_000, key: 'fifteen' },
+  { value: 60 * 60_000, key: 'hour' },
 ]

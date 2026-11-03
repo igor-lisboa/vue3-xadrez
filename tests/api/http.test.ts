@@ -3,6 +3,7 @@ import type { AxiosAdapter } from 'axios'
 import { http } from '@/api/http'
 import { ApiConfigurationError, UnexpectedResponseError } from '@/api/api-errors'
 import { getErrorMessage } from '@/api/errors'
+import { en } from '@/i18n/messages/en'
 
 const { env } = vi.hoisted(() => ({
   env: { apiBaseUrl: 'http://api.test', appTitle: 'Chess' },
@@ -38,7 +39,7 @@ describe('http client', () => {
   })
 
   it('shows the configuration and response problems to the player', () => {
-    expect(getErrorMessage(new ApiConfigurationError())).toContain('VITE_API_BASE_URL')
-    expect(getErrorMessage(new UnexpectedResponseError())).toContain('did not answer with JSON')
+    expect(getErrorMessage(new ApiConfigurationError(), en.errors)).toBe(en.errors.notConfigured)
+    expect(getErrorMessage(new UnexpectedResponseError(), en.errors)).toBe(en.errors.notJson)
   })
 })

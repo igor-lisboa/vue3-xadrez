@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useChessBoard } from '@/composables/useChessBoard'
 import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
+import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
 import { useTurnClock } from '@/composables/useTurnClock'
 import { AI_VS_AI_GAME_LABEL, NO_TIME_LIMIT } from '@/domain/constants'
@@ -21,6 +22,7 @@ import { notify } from '@/services/dialogs'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
 
+const { messages } = useLocale()
 const router = useRouter()
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
 const { data: squares } = useLoader<Square[]>(listSquares, [])
@@ -39,7 +41,7 @@ const busy = computed(() => actions.pending.value)
 
 useGameSocket(props.gameId, props.sideId, {
   opponentJoined: () => {
-    notify('The opponent joined the game!')
+    notify(messages.value.game.opponentJoined)
     return refresh()
   },
   moveMade: refresh,
@@ -78,7 +80,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <LoadingSpinner v-if="!summary || busy" />
+  <LoadingSpinner v-if="!summary || busy" :label="messages.common.loading" />
   <template v-else>
     <div class="alert alert-light" role="alert">{{ summary.id }} | {{ summary.tipoJogo }}</div>
 
@@ -86,6 +88,7 @@ onMounted(async () => {
       :houses="houses"
       :highlight-turn="summary.ladoIdAtual === sideId"
       :spectator-only="summary.tipoJogo === AI_VS_AI_GAME_LABEL"
+      :move-labels="messages.labels.moves"
       @select="selectHouse"
     />
 
@@ -93,8 +96,13 @@ onMounted(async () => {
       v-if="summary.tempoDeTurnoEmMilisegundos !== NO_TIME_LIMIT"
       :white-ms="whiteMs"
       :black-ms="blackMs"
+      :labels="messages.labels.sides"
     />
 
-    <GameActions @resign="resign" @propose-draw="proposeDraw" />
+    <GameActions
+      :labels="{ resign: messages.game.resign, offerDraw: messages.game.offerDraw }"
+      @resign="resign"
+      @propose-draw="proposeDraw"
+    />
   </template>
 </template>

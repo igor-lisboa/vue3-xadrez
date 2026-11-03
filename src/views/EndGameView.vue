@@ -7,18 +7,19 @@ import ActionButton from '@/components/common/ActionButton.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
+import { useLocale } from '@/composables/useLocale'
 import { useRequest } from '@/composables/useRequest'
-import { ENDING_LABELS } from '@/domain/labels'
 import { notify } from '@/services/dialogs'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
 
+const { messages } = useLocale()
 const router = useRouter()
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
 const proposal = useRequest()
 const busy = computed(() => proposal.pending.value)
 const endingText = computed(() =>
-  summary.value?.finalizado ? ENDING_LABELS[summary.value.finalizado] : '',
+  summary.value?.finalizado ? messages.value.labels.endings[summary.value.finalizado] : '',
 )
 
 async function goToGame(): Promise<void> {
@@ -51,12 +52,14 @@ onMounted(() => void refresh())
 </script>
 
 <template>
-  <LoadingSpinner v-if="busy" />
+  <LoadingSpinner v-if="busy" :label="messages.common.loading" />
   <template v-else>
     <h1>{{ endingText }}</h1>
     <div class="btn-group" role="group">
-      <ActionButton class="mt-3" @click="goHome">New game?</ActionButton>
-      <ActionButton class="mt-3" variant="dark" @click="proposeReset">Propose reset</ActionButton>
+      <ActionButton class="mt-3" @click="goHome">{{ messages.common.newGame }}</ActionButton>
+      <ActionButton class="mt-3" variant="dark" @click="proposeReset">
+        {{ messages.endGame.proposeReset }}
+      </ActionButton>
     </div>
   </template>
 </template>

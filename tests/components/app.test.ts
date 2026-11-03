@@ -1,22 +1,34 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import App from '@/App.vue'
 import { boardHouseClasses } from '@/components/game/board-house-classes'
 import { createBoardHouses } from '@/domain/board'
+import { setLocale } from '@/services/locale'
 import { pieceTypes, squares } from '../helpers/fixtures'
+
+const stubs = {
+  'router-link': { template: '<a><slot /></a>' },
+  'router-view': { template: '<main>page</main>' },
+}
+
+afterEach(() => setLocale('en'))
 
 describe('App', () => {
   it('renders the app shell around the routed page', () => {
-    const wrapper = mount(App, {
-      global: {
-        stubs: {
-          'router-link': { template: '<a><slot /></a>' },
-          'router-view': { template: '<main>page</main>' },
-        },
-      },
-    })
+    const wrapper = mount(App, { global: { stubs } })
     expect(wrapper.find('main').text()).toBe('page')
     expect(wrapper.find('footer').exists()).toBe(true)
+  })
+
+  it('offers the six languages and changes the texts when one is chosen', async () => {
+    const wrapper = mount(App, { global: { stubs } })
+    const select = wrapper.find('select')
+    expect(select.findAll('option')).toHaveLength(6)
+    expect(wrapper.find('footer').text()).toContain('Developed by')
+
+    await select.setValue('pt-BR')
+    expect(wrapper.find('footer').text()).toContain('Desenvolvido por')
+    expect(select.attributes('aria-label')).toBe('Idioma')
   })
 })
 

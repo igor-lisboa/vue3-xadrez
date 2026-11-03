@@ -1,18 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { gameTypeLabel, moveLabel } from '@/domain/labels'
+import { gameTypeLabel } from '@/domain/labels'
 import { orientForSide } from '@/domain/orientation'
+import { en } from '@/i18n/messages/en'
 import { gameTypes } from '../helpers/fixtures'
 
 describe('labels', () => {
-  it('names a game type by its players', () => {
-    expect(gameTypeLabel(gameTypes[0]!)).toBe('Human X Human')
-    expect(gameTypeLabel(gameTypes[1]!)).toBe('AI X AI')
-  })
-
-  it('translates move names and leaves nothing for a normal move', () => {
-    expect(moveLabel('Roque Maior')).toBe('Long castling')
-    expect(moveLabel('L')).toBe('Knight move')
-    expect(moveLabel(null)).toBe('')
+  it('names a game type by its players, in the labels given', () => {
+    expect(gameTypeLabel(gameTypes[0]!, en.labels.playerTypes)).toBe('Human X Human')
+    expect(gameTypeLabel(gameTypes[1]!, en.labels.playerTypes)).toBe('AI X AI')
+    expect(gameTypeLabel(gameTypes[1]!, { 0: 'Humano', 1: 'IA' })).toBe('IA X IA')
   })
 })
 

@@ -18,8 +18,9 @@ Node 20.19+ or 22.12+ is required.
 ## Conventions
 
 ### Language
-- All code, identifiers, comments, file names and UI text are in **English**.
-- Wire values from the API stay as the API sends them (Portuguese): query and body keys such as `tipoJogo`, `tempoDeTurnoEmMilisegundos`, `resposta`, the header `lado`, the enums `Branco`, `Rei`, `responderPropostaEmpate`, and the URL segments such as `/propoe` and `/responde`. Map them to English labels in `src/domain/labels.ts`.
+- All code, identifiers, comments and file names are in **English**.
+- UI text is never hard-coded in components or views. It lives in one message file per language under `src/i18n/messages/` (en, pt-BR, pt, fr, it, de). Each file implements the `Messages` interface, so a missing key fails the type check. Views read texts with `useLocale()`; components receive them as props. Add a key to every language file in the same change.
+- Wire values from the API stay as the API sends them (Portuguese): query and body keys such as `tipoJogo`, `tempoDeTurnoEmMilisegundos`, `resposta`, the header `lado`, the enums `Branco`, `Rei`, `responderPropostaEmpate`, and the URL segments such as `/propoe` and `/responde`. Their translations for display are in the `labels` section of each message file.
 - Server messages (`message` in the envelope) are shown as received.
 
 ### Structure (keep these rules)
@@ -65,6 +66,7 @@ Node 20.19+ or 22.12+ is required.
 - **Clock** runs in the browser in `useTurnClock`; the server stays the source of truth. When a side reaches zero, the game is reloaded.
 - **Socket** (`useGameSocket`) maps game events to handlers by semantic name. The wire names are in `src/api/socket-events.ts`.
 - **Environment** is read only through `src/config/env.ts`.
+- **Language** is chosen in the header and kept by `src/services/locale.ts` (localStorage key `chess.locale`). `src/i18n/` has no Vue imports; the language itself is reactive only in the service and `useLocale`.
 
 ## Things to know
 

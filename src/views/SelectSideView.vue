@@ -9,13 +9,14 @@ import ActionButton from '@/components/common/ActionButton.vue'
 import ChoiceGroup from '@/components/common/ChoiceGroup.vue'
 import type { ChoiceOption } from '@/components/common/choice'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
 import { HUMAN_PLAYER } from '@/domain/constants'
-import { SIDE_LABELS } from '@/domain/labels'
 import { notify } from '@/services/dialogs'
 
 const props = defineProps<{ gameId: number; preselectedSide: SideId | null }>()
 
+const { messages } = useLocale()
 const router = useRouter()
 const selectedSide = ref<SideId | null>(props.preselectedSide)
 const {
@@ -29,7 +30,7 @@ const joining = useRequest()
 const busy = computed(() => loadingSides.value || joining.pending.value)
 
 const options = computed<ChoiceOption<SideId>[]>(() =>
-  emptySides.value.map((side) => ({ value: side.id, label: SIDE_LABELS[side.id] })),
+  emptySides.value.map((side) => ({ value: side.id, label: messages.value.labels.sides[side.id] })),
 )
 
 async function joinSelectedSide(): Promise<void> {
@@ -54,23 +55,23 @@ function goHome(): void {
 </script>
 
 <template>
-  <LoadingSpinner v-if="busy" />
+  <LoadingSpinner v-if="busy" :label="messages.common.loading" />
   <template v-else>
     <template v-if="emptySides.length > 0">
-      <h1>Choose an available side to play game {{ gameId }}</h1>
-      <p class="lead">Click the option you want</p>
+      <h1>{{ messages.selectSide.title(gameId) }}</h1>
+      <p class="lead">{{ messages.common.clickOption }}</p>
 
       <div class="mt-3">
         <ChoiceGroup v-model="selectedSide" :options="options" />
       </div>
 
       <ActionButton class="mt-3" :disabled="selectedSide === null" @click="joinSelectedSide">
-        Join game
+        {{ messages.selectSide.join }}
       </ActionButton>
     </template>
     <template v-else>
-      <h1>This game has no available sides</h1>
-      <ActionButton class="mt-3" @click="goHome">New game?</ActionButton>
+      <h1>{{ messages.selectSide.noSides }}</h1>
+      <ActionButton class="mt-3" @click="goHome">{{ messages.common.newGame }}</ActionButton>
     </template>
   </template>
 </template>

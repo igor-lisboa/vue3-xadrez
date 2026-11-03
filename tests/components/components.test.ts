@@ -7,7 +7,9 @@ import ChessBoard from '@/components/game/ChessBoard.vue'
 import ClockPanel from '@/components/game/ClockPanel.vue'
 import GameActions from '@/components/game/GameActions.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import LanguageSelect from '@/components/layout/LanguageSelect.vue'
 import { createBoardHouses } from '@/domain/board'
+import { en } from '@/i18n/messages/en'
 import { pieceTypes, squares } from '../helpers/fixtures'
 
 describe('ActionButton', () => {
@@ -53,10 +55,47 @@ describe('ChoiceGroup', () => {
 })
 
 describe('LoadingSpinner', () => {
-  it('shows an accessible spinner', () => {
-    const wrapper = mount(LoadingSpinner)
+  it('shows an accessible spinner with the label it is given', () => {
+    const wrapper = mount(LoadingSpinner, { props: { label: 'Carregando...' } })
     expect(wrapper.attributes('role')).toBe('status')
-    expect(wrapper.text()).toContain('Loading...')
+    expect(wrapper.text()).toContain('Carregando...')
+  })
+})
+
+describe('LanguageSelect', () => {
+  const options = [
+    { value: 'en', label: 'English' },
+    { value: 'fr', label: 'Français' },
+  ]
+
+  it('lists the languages by their own names and labels the control', () => {
+    const wrapper = mount(LanguageSelect, {
+      props: {
+        options,
+        label: 'Language',
+        modelValue: 'en',
+        'onUpdate:modelValue': () => undefined,
+      },
+    })
+    expect(wrapper.findAll('option').map((option) => option.text())).toEqual([
+      'English',
+      'Français',
+    ])
+    expect(wrapper.attributes('aria-label')).toBe('Language')
+    expect((wrapper.element as HTMLSelectElement).value).toBe('en')
+  })
+
+  it('emits the code of the language chosen', async () => {
+    const wrapper = mount(LanguageSelect, {
+      props: {
+        options,
+        label: 'Language',
+        modelValue: 'en',
+        'onUpdate:modelValue': () => undefined,
+      },
+    })
+    await wrapper.find('select').setValue('fr')
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual(['fr'])
   })
 })
 
@@ -69,7 +108,12 @@ describe('ChessBoard', () => {
 
   it('draws the piece symbols and the highlight classes', () => {
     const wrapper = mount(ChessBoard, {
-      props: { houses: houses(), highlightTurn: false, spectatorOnly: false },
+      props: {
+        houses: houses(),
+        highlightTurn: false,
+        spectatorOnly: false,
+        moveLabels: en.labels.moves,
+      },
     })
     const cells = wrapper.findAll('.board-house')
     expect(cells[0]?.text()).toBe('W-King')
@@ -79,9 +123,26 @@ describe('ChessBoard', () => {
     expect(cells[0]?.attributes('title')).toBe('A8')
   })
 
+  it('names special moves in the language it is given', () => {
+    const wrapper = mount(ChessBoard, {
+      props: {
+        houses: houses(),
+        highlightTurn: false,
+        spectatorOnly: false,
+        moveLabels: { ...en.labels.moves, L: 'Movimento do cavalo' },
+      },
+    })
+    expect(wrapper.findAll('.board-house')[1]?.attributes('title')).toBe('B8 | Movimento do cavalo')
+  })
+
   it('emits the index of the clicked square', async () => {
     const wrapper = mount(ChessBoard, {
-      props: { houses: houses(), highlightTurn: false, spectatorOnly: false },
+      props: {
+        houses: houses(),
+        highlightTurn: false,
+        spectatorOnly: false,
+        moveLabels: en.labels.moves,
+      },
     })
     await wrapper.findAll('.board-house')[1]!.trigger('click')
     expect(wrapper.emitted('select')).toEqual([[1]])
@@ -89,7 +150,12 @@ describe('ChessBoard', () => {
 
   it('outlines the board on turn and disables clicks for spectators', () => {
     const wrapper = mount(ChessBoard, {
-      props: { houses: houses(), highlightTurn: true, spectatorOnly: true },
+      props: {
+        houses: houses(),
+        highlightTurn: true,
+        spectatorOnly: true,
+        moveLabels: en.labels.moves,
+      },
     })
     expect(wrapper.classes()).toEqual(
       expect.arrayContaining(['active-side-border', 'spectator-only']),
@@ -98,16 +164,23 @@ describe('ChessBoard', () => {
 })
 
 describe('ClockPanel', () => {
-  it('shows both clocks formatted', () => {
-    const wrapper = mount(ClockPanel, { props: { whiteMs: 300000, blackMs: 3723000 } })
+  it('shows both clocks formatted, under the side names it is given', () => {
+    const wrapper = mount(ClockPanel, {
+      props: { whiteMs: 300000, blackMs: 3723000, labels: en.labels.sides },
+    })
     expect(wrapper.findAll('.badge').map((badge) => badge.text())).toEqual(['00:05:00', '01:02:03'])
+    expect(wrapper.text()).toContain('White')
+    expect(wrapper.text()).toContain('Black')
   })
 })
 
 describe('GameActions', () => {
-  it('emits resign and proposeDraw', async () => {
-    const wrapper = mount(GameActions)
+  it('shows the labels it is given and emits resign and proposeDraw', async () => {
+    const wrapper = mount(GameActions, {
+      props: { labels: { resign: 'Abandonner', offerDraw: 'Proposer la nulle' } },
+    })
     const buttons = wrapper.findAll('button')
+    expect(buttons.map((button) => button.text())).toEqual(['Abandonner', 'Proposer la nulle'])
     await buttons[0]!.trigger('click')
     await buttons[1]!.trigger('click')
     expect(wrapper.emitted('resign')).toHaveLength(1)
@@ -116,9 +189,13 @@ describe('GameActions', () => {
 })
 
 describe('AppFooter', () => {
-  it('credits the author and the API repository', () => {
-    const wrapper = mount(AppFooter)
+  it('credits the author and the API repository in the words it is given', () => {
+    const wrapper = mount(AppFooter, {
+      props: { developedBy: en.footer.developedBy, usingApi: en.footer.usingApi },
+    })
+    expect(wrapper.text()).toContain('Developed by')
     expect(wrapper.text()).toContain('Igor Lisbôa')
+    expect(wrapper.text()).toContain('using the API')
     expect(wrapper.text()).toContain('tcc00339-gpms-xadrez-backend')
   })
 })

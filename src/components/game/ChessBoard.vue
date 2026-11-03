@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { moveLabel } from '@/domain/labels'
+import type { MoveName } from '@/api/types/enums'
 import type { BoardHouse } from '@/domain/types'
 import { boardHouseClasses } from './board-house-classes'
 
@@ -9,6 +9,8 @@ const props = defineProps<{
   highlightTurn: boolean
   /** Spectators of an AI vs AI game cannot click the board. */
   spectatorOnly: boolean
+  /** Names of the special moves in the language in use, shown in the square tooltip. */
+  moveLabels: Record<NonNullable<MoveName>, string>
 }>()
 
 const emit = defineEmits<{ select: [index: number] }>()
@@ -16,7 +18,7 @@ const emit = defineEmits<{ select: [index: number] }>()
 function houseTitle(house: BoardHouse): string {
   return house.movementName === null
     ? house.house
-    : `${house.house} | ${moveLabel(house.movementName)}`
+    : `${house.house} | ${props.moveLabels[house.movementName]}`
 }
 </script>
 

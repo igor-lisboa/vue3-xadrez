@@ -4,6 +4,7 @@ import { env } from '@/config/env'
 import { SOCKET_EVENTS } from '@/api/socket-events'
 import type { SideId } from '@/api/types/enums'
 import { notify } from '@/services/dialogs'
+import { currentMessages } from '@/services/locale'
 
 /** Handlers keyed by what happened in the game (the wire event names are in SOCKET_EVENTS). */
 export type SocketHandlers = Partial<
@@ -26,7 +27,7 @@ export function useGameSocket(gameId: number, sideId: SideId, handlers: SocketHa
   }
 
   socket.on(SOCKET_EVENTS.serverError, (error: unknown) => {
-    notify('Connection error with the server.')
+    notify(currentMessages().game.connectionError)
     console.error(error)
   })
 

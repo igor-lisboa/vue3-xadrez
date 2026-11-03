@@ -9,9 +9,9 @@ import type { ChoiceOption } from '@/components/common/choice'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
+import { useLocale } from '@/composables/useLocale'
 import { useRequest } from '@/composables/useRequest'
 import { ANSWER_ACTION } from '@/domain/game-screen'
-import { PROPOSAL_LABELS } from '@/domain/labels'
 import { notify } from '@/services/dialogs'
 
 const props = defineProps<{
@@ -20,9 +20,9 @@ const props = defineProps<{
   proposalType: 'tie' | 'reset'
 }>()
 
+const { messages } = useLocale()
 const router = useRouter()
 const kind: ProposalKind = props.proposalType === 'tie' ? 'empate' : 'reset'
-const label = PROPOSAL_LABELS[kind]
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
 const answer = ref<boolean | null>(null)
 const response = useRequest()
@@ -36,10 +36,10 @@ const isAnswerer = computed(
     ) ?? false,
 )
 
-const options: ChoiceOption<boolean>[] = [
-  { value: true, label: 'Accept' },
-  { value: false, label: 'Decline' },
-]
+const options = computed<ChoiceOption<boolean>[]>(() => [
+  { value: true, label: messages.value.answer.accept },
+  { value: false, label: messages.value.answer.decline },
+])
 
 useGameSocket(props.gameId, props.sideId, {
   drawAnswered: refresh,
@@ -64,18 +64,20 @@ onMounted(() => void refresh())
 </script>
 
 <template>
-  <LoadingSpinner v-if="!summary || busy" />
+  <LoadingSpinner v-if="!summary || busy" :label="messages.common.loading" />
   <template v-else-if="isAnswerer">
-    <h1>You received a {{ label }} proposal</h1>
-    <p class="lead">Click the answer you want</p>
+    <h1>{{ messages.answer.received[kind] }}</h1>
+    <p class="lead">{{ messages.answer.lead }}</p>
 
     <div class="mt-3">
       <ChoiceGroup v-model="answer" :options="options" />
     </div>
 
-    <ActionButton class="mt-3" :disabled="answer === null" @click="respond">Respond</ActionButton>
+    <ActionButton class="mt-3" :disabled="answer === null" @click="respond">
+      {{ messages.answer.respond }}
+    </ActionButton>
   </template>
   <template v-else>
-    <h1>Waiting for the answer to the {{ label }} proposal...</h1>
+    <h1>{{ messages.answer.waiting[kind] }}</h1>
   </template>
 </template>

@@ -10,12 +10,13 @@ import ChoiceGroup from '@/components/common/ChoiceGroup.vue'
 import type { ChoiceOption } from '@/components/common/choice'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useGameState } from '@/composables/useGameState'
+import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
-import { PIECE_LABELS } from '@/domain/labels'
 import { notify } from '@/services/dialogs'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
 
+const { messages } = useLocale()
 const router = useRouter()
 const { refresh } = useGameState(props.gameId, props.sideId)
 const { data: pieces, loading: loadingPieces } = useLoader<PieceType[]>(listPromotionPieces, [])
@@ -24,7 +25,10 @@ const promotion = useRequest()
 const busy = computed(() => loadingPieces.value || promotion.pending.value)
 
 const options = computed<ChoiceOption<number>[]>(() =>
-  pieces.value.map((piece) => ({ value: piece.id, label: PIECE_LABELS[piece.nome] })),
+  pieces.value.map((piece) => ({
+    value: piece.id,
+    label: messages.value.labels.pieces[piece.nome],
+  })),
 )
 
 async function promote(): Promise<void> {
@@ -43,17 +47,17 @@ onMounted(() => void refresh())
 </script>
 
 <template>
-  <LoadingSpinner v-if="busy" />
+  <LoadingSpinner v-if="busy" :label="messages.common.loading" />
   <template v-else>
-    <h1>Choose a piece to promote your pawn</h1>
-    <p class="lead">Click the option you want</p>
+    <h1>{{ messages.promotePawn.title }}</h1>
+    <p class="lead">{{ messages.common.clickOption }}</p>
 
     <div class="mt-3">
       <ChoiceGroup v-model="selectedPiece" :options="options" />
     </div>
 
     <ActionButton class="mt-3" :disabled="selectedPiece === null" @click="promote">
-      Select piece
+      {{ messages.promotePawn.select }}
     </ActionButton>
   </template>
 </template>

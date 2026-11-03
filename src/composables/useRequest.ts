@@ -1,6 +1,7 @@
 import { ref, type Ref } from 'vue'
 import { getErrorMessage } from '@/api/errors'
 import { notify } from '@/services/dialogs'
+import { currentMessages } from '@/services/locale'
 
 export interface RequestHandle {
   pending: Ref<boolean>
@@ -19,7 +20,7 @@ export function useRequest(): RequestHandle {
     try {
       return await task()
     } catch (error) {
-      notify(getErrorMessage(error))
+      notify(getErrorMessage(error, currentMessages().errors))
       return undefined
     } finally {
       pending.value = false

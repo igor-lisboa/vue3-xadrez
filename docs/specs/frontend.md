@@ -45,6 +45,8 @@ When the resolved screen differs from the current one, the frontend navigates. W
 
 ## 3. Behaviour by screen
 
+Texts quoted in this section are the English versions. Each language shows its own translation (section 6).
+
 ### 3.1 Home
 
 - Loads the game types from the API (Human X Human, Human X AI, AI X AI). The label of each button is built from the player types of the two sides.
@@ -124,7 +126,7 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 
 The visual design is kept as it was. Changes to appearance need a deliberate decision and an update to this section.
 
-- **Theme.** Dark page background (Bootstrap `bg-dark`), white text, centred content. The header is the app title, linked to Home. The footer credits the author and the API repository in light grey.
+- **Theme.** Dark page background (Bootstrap `bg-dark`), white text, centred content. The header is the app title, linked to Home, with the language selector on the right (a small dark `form-select` that lists the languages by their own names, see section 6). The footer credits the author and the API repository in light grey.
 - **Typography and buttons.** Bootstrap 5 defaults. Headings are the page title (`h1`), a lead sentence (`lead`), and `h2` for "OR" on Home. Action buttons are large (`btn-lg`) and bold. Choice groups are radio button groups (outlined primary buttons).
 - **Button variants.** Primary actions use light buttons with a white border. Offering a draw is red (`btn-danger`); offering a reset is dark (`btn-dark`).
 - **Board.** 656 px square board with an 8 px rebeccapurple border, rounded corners. Each square is 80 px with a 50 px symbol. Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
@@ -163,15 +165,30 @@ Requested actions in a game state (`acoesSolicitadas`) drive the screen rules: `
 
 ## 6. Language and labels
 
-### 6.1 Text
+### 6.1 Languages and text
 
-All text the frontend writes is in English. Error and confirmation messages that come from the API are shown exactly as the API sends them. Those messages are in Portuguese, for example "Esse lado já foi escolhido". Translating them would need a change in the API.
+The frontend's text is available in six languages. The language is chosen with the selector in the header, which is shown on every screen and lists each language by its own name:
 
-### 6.2 Labels mapped to English
+| Code | Shown as |
+| --- | --- |
+| `en` (default) | English |
+| `pt-BR` | Português (Brasil) |
+| `pt` | Português (Portugal) |
+| `fr` | Français |
+| `it` | Italiano |
+| `de` | Deutsch |
 
-The API uses Portuguese identifiers. The frontend keeps them on the wire and in code, and shows English labels:
+- **Choice.** The choice is kept in the browser (`localStorage`, key `chess.locale`), so it survives a reload. Without a stored choice, the frontend uses the first browser language it supports (for example `pt-PT` gives Português (Portugal), `fr-CA` gives Français) and falls back to English.
+- **Switching.** Changing the language changes all visible text at once, on the current screen. It does not reload the game, and the `lang` attribute of the page is updated.
+- **Where the text lives.** One message file per language under `src/i18n/messages/`. Each file has every key, so a missing translation fails the type check.
+- **API messages.** Error and confirmation messages that come from the API are shown exactly as the API sends them, in Portuguese (for example "Esse lado já foi escolhido"). Translating them would need a change in the API.
+- **Board and clock values** that come from the API stay as received, for example the game type in the information bar.
 
-| API value | Shown as |
+### 6.2 Labels translated
+
+The API uses Portuguese identifiers. The frontend keeps them on the wire and in code, and translates them for display in each language's message file. The English values are:
+
+| API value | English |
 | --- | --- |
 | Branco / Preto | White / Black |
 | Humano / I.A. | Human / AI |
@@ -186,7 +203,7 @@ The API uses Portuguese identifiers. The frontend keeps them on the wire and in 
 | Desistência: Um jogador deixou a partida | Resignation: a player left the game |
 | Tempo esgotado: o tempo de um jogador acabou | Time out: a player ran out of time |
 
-Move names are shown as "Short castling", "Long castling", "Pawn double step", "Pawn promotion", "En passant", "Knight move".
+Move names are shown as "Short castling", "Long castling", "Pawn double step", "Pawn promotion", "En passant", "Knight move". Each language has its own names for these values.
 
 ### 6.3 URLs
 
@@ -209,7 +226,7 @@ The socket is closed when the screen is left.
 
 ## 8. Errors and loading
 
-- A failed request shows its error with a browser alert. Errors without a server message say "Unexpected error. Please try again." or "Could not reach the server. Please try again later.".
+- A failed request shows its error with a browser alert. Errors without a server message say "Unexpected error. Please try again." or "Could not reach the server. Please try again later.", in the selected language. The same goes for the two configuration errors (no API address, or an answer that is not JSON).
 - A failed load of the game sends the player to Home.
 - A failed load of free sides sends the player to Home.
 - Actions that fail keep the player on the screen and reload the game where that makes sense.
@@ -227,6 +244,6 @@ The socket is closed when the screen is left.
 
 - The deployed API is behind Vercel deployment protection, which redirects anonymous requests to a login page. Until the protection is disabled, the frontend cannot reach the API from a browser.
 - The API's castling check does not verify the squares the king passes through (a known deviation documented in the API).
-- The API messages are in Portuguese (section 6.1).
+- The API messages are in Portuguese and are not translated (section 6.1).
 - The board is not responsive (section 4).
 - The socket events are not in the OpenAPI description. If the API changes them, update `src/api/socket-events.ts` and section 7.
