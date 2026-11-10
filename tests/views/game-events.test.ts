@@ -27,7 +27,11 @@ vi.mock('@/api/services/catalogue', () => ({
 vi.mock('@/api/services/games', () => ({ getGameSummary: vi.fn() }))
 vi.mock('@/api/services/players', () => ({ joinGame: vi.fn(), leaveGame: vi.fn() }))
 vi.mock('@/api/services/moves', () => ({ listPossibleMoves: vi.fn(), makeMove: vi.fn() }))
-vi.mock('@/api/services/proposals', () => ({ proposeToOpponent: vi.fn(), answerProposal: vi.fn() }))
+vi.mock('@/api/services/proposals', () => ({
+  proposeDraw: vi.fn(),
+  proposeReset: vi.fn(),
+  answerProposal: vi.fn(),
+}))
 vi.mock('@/api/services/ai', () => ({ triggerAi: vi.fn(async () => undefined) }))
 vi.mock('@/services/dialogs', () => ({ notify: vi.fn(), askText: vi.fn() }))
 vi.mock('socket.io-client', () => ({

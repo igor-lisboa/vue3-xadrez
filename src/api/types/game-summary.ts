@@ -28,6 +28,13 @@ export interface GameSummary {
   ladosIdDeslogados: SideId[]
   enPassantCasaCaptura: EnPassantSummary | null
   finalizado: EndingLabel | null
+  /** The side that won, or null while the game runs and after a draw. */
+  ladoIdVencedor: SideId | null
+  /**
+   * True when the side on turn could claim a draw now (threefold repetition or 50-move rule)
+   * for the position on the board. Always false once the game has ended.
+   */
+  empateReivindicavel: boolean
   /** Player types of both sides joined by " X ", for example "Humano X I.A.". */
   tipoJogo: string
   tabuleiro: (SimplifiedCell | null)[][]

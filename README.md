@@ -10,9 +10,10 @@ Built with Vue 3, TypeScript, Vite, Bootstrap 5 and socket.io for live updates.
 - Choose a turn time limit (5, 10 or 15 minutes)
 - Join an existing game by its id, on a free side
 - Play with click-to-move: select a piece to see its legal moves, click a highlighted square to move
-- Pawn promotion, draw offers and reset offers, with accept or decline
+- Pawn promotion, draw offers (that never block play) and reset offers, with accept or decline
+- Claim a draw (threefold repetition or 50-move rule) when the API allows it, also for the position the next move would make
 - Live updates over socket.io, and a countdown clock when the game has a time limit
-- Resign a game
+- Resign a game, and see who won
 - Review any game by its room number, from the end screen or from Home: the final board, every move in a list, and buttons (or the arrow keys) to step through the positions and see how the game ended
 - See why a game ended in a material draw: the pieces each side had left, and whether a side ran out of time
 - Six languages (English, Portuguese from Brazil and from Portugal, French, Italian, German), chosen in the header

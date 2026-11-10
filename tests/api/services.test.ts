@@ -14,7 +14,7 @@ import {
 } from '@/api/services/games'
 import { joinGame, leaveGame } from '@/api/services/players'
 import { listPossibleMoves, makeMove, promotePawn } from '@/api/services/moves'
-import { answerProposal, proposeToOpponent } from '@/api/services/proposals'
+import { answerProposal, proposeDraw, proposeReset } from '@/api/services/proposals'
 import { triggerAi } from '@/api/services/ai'
 
 vi.mock('@/api/http', () => ({
@@ -82,7 +82,8 @@ describe('player services', () => {
   it('leaves a side and returns the message', async () => {
     vi.mocked(http.delete).mockResolvedValue(envelope(null, 'Resigned'))
     await expect(leaveGame(4, 1)).resolves.toBe('Resigned')
-    expect(http.delete).toHaveBeenCalledWith('/jogos/4/jogadores/1')
+    // The API only lets a side resign for itself, so the header names the same side.
+    expect(http.delete).toHaveBeenCalledWith('/jogos/4/jogadores/1', { headers: { lado: 1 } })
   })
 })
 
@@ -113,10 +114,45 @@ describe('move services', () => {
 })
 
 describe('proposal services', () => {
-  it('offers a draw or a reset with the side header', async () => {
-    vi.mocked(http.put).mockResolvedValue(envelope(null, 'Offered'))
-    await expect(proposeToOpponent(4, 0, 'empate')).resolves.toBe('Offered')
-    expect(http.put).toHaveBeenCalledWith('/jogos/4/empate/propoe', {}, { headers: { lado: 0 } })
+  it('offers or claims a draw with the side header and no body', async () => {
+    vi.mocked(http.put).mockResolvedValue(
+      envelope({ reivindicado: false, jogadaRealizada: null }, 'Offered'),
+    )
+    await expect(proposeDraw(4, 0)).resolves.toEqual({ message: 'Offered', claimed: false })
+    expect(http.put).toHaveBeenCalledWith('/jogos/4/empate/propoe', undefined, {
+      headers: { lado: 0 },
+    })
+  })
+
+  it('reports a draw claim that ended the game', async () => {
+    vi.mocked(http.put).mockResolvedValue(
+      envelope({ reivindicado: true, jogadaRealizada: null }, 'Empate reivindicado com sucesso!'),
+    )
+    await expect(proposeDraw(4, 1)).resolves.toEqual({
+      message: 'Empate reivindicado com sucesso!',
+      claimed: true,
+    })
+  })
+
+  it('claims a draw for the next move with both squares in the body', async () => {
+    vi.mocked(http.put).mockResolvedValue(
+      envelope({ reivindicado: false, jogadaRealizada: { identificador: 9 } }, 'Offered'),
+    )
+    await expect(proposeDraw(4, 0, { origem: 'E1', destino: 'E2' })).resolves.toEqual({
+      message: 'Offered',
+      claimed: false,
+    })
+    expect(http.put).toHaveBeenCalledWith(
+      '/jogos/4/empate/propoe',
+      { origem: 'E1', destino: 'E2' },
+      { headers: { lado: 0 } },
+    )
+  })
+
+  it('offers a reset with the side header', async () => {
+    vi.mocked(http.put).mockResolvedValue(envelope(null, 'Offered reset'))
+    await expect(proposeReset(4, 1)).resolves.toBe('Offered reset')
+    expect(http.put).toHaveBeenCalledWith('/jogos/4/reset/propoe', {}, { headers: { lado: 1 } })
   })
 
   it('answers an offer with the boolean choice', async () => {

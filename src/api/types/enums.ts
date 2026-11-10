@@ -41,6 +41,7 @@ export type MoveName =
   | 'L'
   | null
 
+/** Ending labels (GET /tipos-de-finalizacao, ids 0 to 11). The API decides every ending. */
 export type EndingLabel =
   | 'Vitória: Branco'
   | 'Vitória: Preto'
@@ -51,3 +52,6 @@ export type EndingLabel =
   | 'Empate: Regra das 3 posições'
   | 'Empate: Tempo esgotado sem material'
   | 'Desistência: Um jogador deixou a partida'
+  | 'Empate: Regra das 5 posições'
+  | 'Empate: Regra 75 movimentos'
+  | 'Empate: Posição morta'

@@ -25,11 +25,18 @@ function goHome(): void {
 // A room that does not exist has nothing to review.
 const replay = useGameReplay(props.gameId, props.sideId, { onError: goHome })
 const review = computed(() => messages.value.review)
-const resultText = computed(() =>
-  replay.ending.value
-    ? translateEnding(messages.value.labels.endings, replay.ending.value)
-    : review.value.inProgress,
-)
+/** Room, result and, when the API names one, the winner: "Room 7 · Black wins · Winner: Black". */
+const summaryLine = computed(() => {
+  const ending = replay.ending.value
+  const winner = replay.winner.value
+  return [
+    review.value.room(props.gameId),
+    ending ? translateEnding(messages.value.labels.endings, ending) : review.value.inProgress,
+    winner === null ? null : messages.value.labels.winners[winner],
+  ]
+    .filter((part) => part !== null)
+    .join(' · ')
+})
 const canStep = computed(() => replay.replay.value?.complete === true)
 const movePairs = computed(() => pairMoves(replay.replay.value?.moves ?? []))
 const positionText = computed(() =>
@@ -43,7 +50,7 @@ const positionText = computed(() =>
   <LoadingSpinner v-if="replay.loading.value" :label="messages.common.loading" />
   <template v-else-if="replay.replay.value">
     <h1>{{ review.title }}</h1>
-    <p class="lead">{{ review.room(gameId) }} · {{ resultText }}</p>
+    <p class="lead">{{ summaryLine }}</p>
     <MaterialSummary
       v-if="replay.material.value"
       class="mb-3"

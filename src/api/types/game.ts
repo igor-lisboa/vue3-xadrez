@@ -1,4 +1,4 @@
-import type { GameTypeId, PlayerTypeId, SideId, SideName } from './enums'
+import type { GameTypeId, PlayerTypeId, SideId, SideName, SquareName } from './enums'
 
 /** Body of POST /jogos. Every field is optional on the server, the frontend always sends them. */
 export interface CreateGameRequest {
@@ -27,4 +27,21 @@ export interface JoinPlayerRequest {
 /** Body of the answer routes. */
 export interface AnswerRequest {
   resposta: boolean
+}
+
+/**
+ * Body of PUT /jogos/{id}/empate/propoe to claim a draw for the position the next move would
+ * make. Both squares are required.
+ */
+export interface IntendedMove {
+  origem: SquareName
+  destino: SquareName
+}
+
+/** Answer data of PUT /jogos/{id}/empate/propoe. */
+export interface DrawProposalResult {
+  /** True when a draw claim succeeded and the game ended. */
+  reivindicado: boolean
+  /** The move played by a claim that was not valid, or null. Not read: the game is reloaded. */
+  jogadaRealizada: unknown
 }

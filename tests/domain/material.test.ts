@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { PieceName, SimplifiedCell } from '@/api/types/enums'
-import { canCheckmate, explainMaterialDraw, piecesLeft } from '@/domain/material'
+import type { EndingLabel, SimplifiedCell } from '@/api/types/enums'
+import { explainMaterialDraw, piecesLeft } from '@/domain/material'
 
 const MATERIAL_DRAW = 'Empate: Insuficiência material'
 const TIME_OUT_DRAW = 'Empate: Tempo esgotado sem material'
@@ -17,28 +17,6 @@ describe('piecesLeft', () => {
     ]
     expect(piecesLeft(cells, 0)).toEqual(['Rei', 'Rainha', 'Cavalo', 'Peão'])
     expect(piecesLeft(cells, 1)).toEqual(['Rei'])
-  })
-})
-
-describe('canCheckmate', () => {
-  // Only a bare king, king and bishop, king and knight, and king and two knights cannot mate.
-  it.each<[PieceName[], boolean]>([
-    [['Rei'], false],
-    [['Rei', 'Bispo'], false],
-    [['Rei', 'Cavalo'], false],
-    [['Rei', 'Rainha'], true],
-    [['Rei', 'Torre'], true],
-    [['Rei', 'Peão'], true],
-    [['Rei', 'Cavalo', 'Cavalo'], false],
-    [['Rei', 'Torre', 'Torre'], true],
-    [['Rei', 'Rainha', 'Cavalo'], true],
-    [['Rei', 'Torre', 'Bispo'], true],
-    [['Rei', 'Peão', 'Peão'], true],
-    [['Rei', 'Bispo', 'Bispo'], true],
-    [['Rei', 'Bispo', 'Cavalo'], true],
-    [['Rei', 'Cavalo', 'Cavalo', 'Cavalo'], true],
-  ])('%j can checkmate: %s', (pieces, expected) => {
-    expect(canCheckmate(pieces)).toBe(expected)
   })
 })
 
@@ -59,8 +37,8 @@ describe('explainMaterialDraw', () => {
     ).toEqual({
       cause: { kind: 'material' },
       sides: [
-        { sideId: 0, pieces: ['Rei'], canCheckmate: false },
-        { sideId: 1, pieces: ['Rei', 'Cavalo'], canCheckmate: false },
+        { sideId: 0, pieces: ['Rei'] },
+        { sideId: 1, pieces: ['Rei', 'Cavalo'] },
       ],
     })
   })
@@ -72,16 +50,30 @@ describe('explainMaterialDraw', () => {
       sideOnMove: 1,
     })
     expect(report?.cause).toEqual({ kind: 'timeOut', sideId: 1 })
-    expect(report?.sides.map((side) => side.canCheckmate)).toEqual([true, false])
+    expect(report?.sides.map((side) => side.pieces)).toEqual([['Rei', 'Torre'], ['Rei']])
   })
 
-  it('reports the pieces of the time-out draw even when the side that ran out cannot mate', () => {
+  it('never judges the material itself: king and two knights is listed as it is', () => {
+    // The API decides which pieces can mate; the report only lists the pieces of its ending.
     const report = explainMaterialDraw({
       ending: TIME_OUT_DRAW,
-      cells: ['Rei-0', 'Bispo-0', 'Rei-1'],
-      sideOnMove: 0,
+      cells: ['Rei-0', 'Cavalo-0', 'Cavalo-0', 'Rei-1'],
+      sideOnMove: 1,
     })
-    expect(report?.cause).toEqual({ kind: 'timeOut', sideId: 0 })
-    expect(report?.sides.map((side) => side.canCheckmate)).toEqual([false, false])
+    expect(report).toEqual({
+      cause: { kind: 'timeOut', sideId: 1 },
+      sides: [
+        { sideId: 0, pieces: ['Rei', 'Cavalo', 'Cavalo'] },
+        { sideId: 1, pieces: ['Rei'] },
+      ],
+    })
+  })
+
+  it.each<EndingLabel>([
+    'Empate: Regra das 5 posições',
+    'Empate: Regra 75 movimentos',
+    'Empate: Posição morta',
+  ])('explains nothing for the automatic draw %s', (ending) => {
+    expect(explainMaterialDraw({ ending, cells: kingsAndKnight, sideOnMove: 0 })).toBeNull()
   })
 })

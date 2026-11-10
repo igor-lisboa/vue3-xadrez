@@ -13,7 +13,6 @@ const PIECE_ORDER: readonly PieceName[] = ['Rei', 'Rainha', 'Torre', 'Bispo', 'C
 interface SideMaterial {
   sideId: SideId
   pieces: PieceName[]
-  canCheckmate: boolean
 }
 
 /** Why the game was drawn: neither side can mate, or the side on the move ran out of time. */
@@ -43,27 +42,10 @@ export function piecesLeft(cells: readonly (SimplifiedCell | null)[], sideId: Si
 }
 
 /**
- * Whether these pieces (the king included) can give checkmate. This copies the backend's rule
- * so the screen can explain a draw; it never decides a result. Only a bare king, king and bishop,
- * king and knight, and king and two knights cannot mate. Same-colour bishops are not detected.
- */
-export function canCheckmate(pieces: readonly PieceName[]): boolean {
-  if (pieces.length < 2) {
-    return false
-  }
-  if (pieces.length === 2) {
-    return pieces.some((piece) => piece === 'Rainha' || piece === 'Torre' || piece === 'Peão')
-  }
-  if (pieces.length === 3) {
-    return pieces.filter((piece) => piece === 'Cavalo').length !== 2
-  }
-  return true
-}
-
-/**
- * Explains a draw that depends on material, or returns null for any other result.
- * "Insufficient material" means both sides cannot mate. The time-out draw is the side on the
- * move running out of time while the other side cannot mate. The clocks are not read: the API
+ * Explains a draw that depends on material, or returns null for any other result: the cause
+ * and the pieces each side has left. The API alone decides which pieces can mate, so the
+ * frontend reads the cause from the ending and never judges the material itself.
+ * The side that ran out of time is the side on the move. The clocks are not read: the API
  * keeps counting the time of the side on the move after the game has ended.
  */
 export function explainMaterialDraw(source: MaterialSource): MaterialReport | null {
@@ -75,9 +57,9 @@ export function explainMaterialDraw(source: MaterialSource): MaterialReport | nu
   } else {
     return null
   }
-  const sideMaterial = (sideId: SideId): SideMaterial => {
-    const pieces = piecesLeft(source.cells, sideId)
-    return { sideId, pieces, canCheckmate: canCheckmate(pieces) }
-  }
+  const sideMaterial = (sideId: SideId): SideMaterial => ({
+    sideId,
+    pieces: piecesLeft(source.cells, sideId),
+  })
   return { cause, sides: [sideMaterial(WHITE), sideMaterial(BLACK)] }
 }

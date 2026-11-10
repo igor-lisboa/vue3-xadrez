@@ -9,7 +9,7 @@ import GameReviewView from '@/views/GameReviewView.vue'
 import type { SideId } from '@/api/types/enums'
 import { WHITE } from '@/domain/constants'
 import { parseSideId } from './params'
-import { requireGameAndSide, requireGameId, requireProposalType } from './guards'
+import { requireGameAndSide, requireGameId } from './guards'
 
 /** Views of a game receive its id and their side. The guards have already checked both. */
 function sideRouteProps(route: { params: Record<string, unknown> }) {
@@ -53,14 +53,12 @@ export const routes: RouteRecordRaw[] = [
     props: sideRouteProps,
   },
   {
-    path: '/game/:id/side/:sideId/answer-proposal/:type(tie|reset)',
+    // Only a reset offer has its own screen: a draw offer is answered on the Game screen.
+    path: '/game/:id/side/:sideId/answer-proposal/reset',
     name: 'answerProposal',
     component: AnswerProposalView,
-    beforeEnter: (to) => requireProposalType(to.params),
-    props: (route) => ({
-      ...sideRouteProps(route),
-      proposalType: route.params.type as 'tie' | 'reset',
-    }),
+    beforeEnter: (to) => requireGameAndSide(to.params),
+    props: sideRouteProps,
   },
   {
     // Open to anyone: the side only turns the board, so a missing or wrong one shows White's view.

@@ -60,8 +60,6 @@ export const de: Messages = {
     title: 'Verbliebene Figuren',
     noMaterial: 'Keine Seite hat genug Material, um mattzusetzen.',
     timeOut: { 0: 'Weiß hat keine Zeit mehr.', 1: 'Schwarz hat keine Zeit mehr.' },
-    canCheckmate: 'Kann mattsetzen',
-    cannotCheckmate: 'Kann nicht mattsetzen',
   },
   review: {
     title: 'Partieanalyse',
@@ -81,11 +79,21 @@ export const de: Messages = {
   game: {
     resign: 'Aufgeben',
     offerDraw: 'Remis anbieten',
+    claimDraw: 'Remis beanspruchen',
+    claimDrawHint:
+      'In dieser Stellung kannst du Remis beanspruchen (dreifache Stellungswiederholung oder 50-Züge-Regel).',
+    claimWithMove: 'Remis mit meinem nächsten Zug beanspruchen',
+    claimWithMoveWarning:
+      'Für eine Wiederholung oder die 50-Züge-Regel, die dein nächster Zug herbeiführen würde. Ist der Anspruch nicht gültig, wird der Zug trotzdem gespielt und dein Gegner erhält ein Remisangebot.',
+    claimNotValid:
+      'Der Remisanspruch war nicht gültig: Dein Zug wurde gespielt und dein Gegner hat ein Remisangebot erhalten.',
+    moveDeclinesDraw: 'Wenn du stattdessen ziehst, lehnst du das Angebot ab.',
     opponentJoined: 'Der Gegner ist dem Spiel beigetreten!',
     connectionError: 'Verbindungsfehler mit dem Server.',
   },
   labels: {
     sides: { 0: 'Weiß', 1: 'Schwarz' },
+    winners: { 0: 'Gewinner: Weiß', 1: 'Gewinner: Schwarz' },
     playerTypes: { 0: 'Mensch', 1: 'KI' },
     pieces: {
       Rei: 'König',
@@ -106,6 +114,9 @@ export const de: Messages = {
       'Desistência: Um jogador deixou a partida': 'Aufgabe: ein Spieler hat das Spiel verlassen',
       'Empate: Tempo esgotado sem material':
         'Remis: Zeit abgelaufen und der Gegner kann nicht mattsetzen',
+      'Empate: Regra das 5 posições': 'Remis: fünffache Stellungswiederholung',
+      'Empate: Regra 75 movimentos': 'Remis: 75-Züge-Regel',
+      'Empate: Posição morta': 'Remis: tote Stellung',
     },
     moves: {
       'Roque Menor': 'Kurze Rochade',

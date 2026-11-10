@@ -3,15 +3,17 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
 import { leaveGame } from '@/api/services/players'
-import { proposeToOpponent } from '@/api/services/proposals'
 import { triggerAi } from '@/api/services/ai'
 import type { PieceType, Square } from '@/api/types/catalogue'
 import type { SideId } from '@/api/types/enums'
 import ChessBoard from '@/components/game/ChessBoard.vue'
+import ClaimWithMoveOption from '@/components/game/ClaimWithMoveOption.vue'
 import ClockPanel from '@/components/game/ClockPanel.vue'
+import DrawOfferPanel from '@/components/game/DrawOfferPanel.vue'
 import GameActions from '@/components/game/GameActions.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useChessBoard } from '@/composables/useChessBoard'
+import { useDrawActions } from '@/composables/useDrawActions'
 import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
 import { useLocale } from '@/composables/useLocale'
@@ -28,6 +30,7 @@ const router = useRouter()
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
 const { data: squares } = useLoader<Square[]>(listSquares, [])
 const { data: pieces } = useLoader<PieceType[]>(listPieceTypes, [])
+const draw = useDrawActions({ gameId: props.gameId, sideId: props.sideId, summary, refresh })
 const { houses, selectHouse } = useChessBoard({
   gameId: props.gameId,
   sideId: props.sideId,
@@ -35,10 +38,12 @@ const { houses, selectHouse } = useChessBoard({
   squares,
   pieces,
   onMoveAttempted: refresh,
+  playMove: draw.playMove,
 })
 const { whiteMs, blackMs } = useTurnClock(summary, () => void refresh())
 const actions = useRequest()
-const busy = computed(() => actions.pending.value)
+const busy = computed(() => actions.pending.value || draw.pending.value)
+const spectatorOnly = computed(() => summary.value?.tipoJogo === AI_VS_AI_GAME_LABEL)
 /** The API sends the game type in Portuguese; the header shows it in the language in use. */
 const gameTypeName = computed(() =>
   translateGameType(summary.value?.tipoJogo ?? '', messages.value.labels.playerTypes),
@@ -67,16 +72,6 @@ async function resign(): Promise<void> {
   await router.push({ name: 'home' })
 }
 
-async function proposeDraw(): Promise<void> {
-  const message = await actions.perform(() =>
-    proposeToOpponent(props.gameId, props.sideId, 'empate'),
-  )
-  if (message !== undefined) {
-    notify(message)
-  }
-  await refresh()
-}
-
 onMounted(async () => {
   await refresh()
   // The API runs the AI player when asked. A failure here does not block the game.
@@ -89,10 +84,23 @@ onMounted(async () => {
   <template v-else>
     <div class="alert alert-light" role="alert">{{ summary.id }} | {{ gameTypeName }}</div>
 
+    <DrawOfferPanel
+      v-if="draw.offer.value"
+      :state="draw.offer.value"
+      :labels="{
+        received: messages.answer.received.empate,
+        sent: messages.answer.waiting.empate,
+        moveDeclines: messages.game.moveDeclinesDraw,
+        accept: messages.answer.accept,
+        decline: messages.answer.decline,
+      }"
+      @answer="draw.answerOffer"
+    />
+
     <ChessBoard
       :houses="houses"
       :highlight-turn="summary.ladoIdAtual === sideId"
-      :spectator-only="summary.tipoJogo === AI_VS_AI_GAME_LABEL"
+      :spectator-only="spectatorOnly"
       :move-labels="messages.labels.moves"
       @select="selectHouse"
     />
@@ -105,9 +113,16 @@ onMounted(async () => {
     />
 
     <GameActions
-      :labels="{ resign: messages.game.resign, offerDraw: messages.game.offerDraw }"
+      :draw-action="draw.action.value"
+      :labels="messages.game"
       @resign="resign"
-      @propose-draw="proposeDraw"
+      @propose-draw="draw.requestDraw"
+    />
+
+    <ClaimWithMoveOption
+      v-if="draw.moveClaimAllowed.value && !spectatorOnly"
+      v-model="draw.claimWithNextMove.value"
+      :labels="{ label: messages.game.claimWithMove, warning: messages.game.claimWithMoveWarning }"
     />
   </template>
 </template>

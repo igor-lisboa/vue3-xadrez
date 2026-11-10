@@ -60,8 +60,6 @@ export const en: Messages = {
     title: 'Pieces left',
     noMaterial: 'Neither side has enough pieces left to checkmate.',
     timeOut: { 0: 'White ran out of time.', 1: 'Black ran out of time.' },
-    canCheckmate: 'Can checkmate',
-    cannotCheckmate: 'Cannot checkmate',
   },
   review: {
     title: 'Game review',
@@ -81,11 +79,20 @@ export const en: Messages = {
   game: {
     resign: 'Resign',
     offerDraw: 'Offer draw',
+    claimDraw: 'Claim draw',
+    claimDrawHint: 'This position lets you claim a draw (threefold repetition or 50-move rule).',
+    claimWithMove: 'Claim a draw with my next move',
+    claimWithMoveWarning:
+      'For a repetition or 50-move rule that your next move would make. If the claim is not valid, the move is played anyway and your opponent receives a draw offer.',
+    claimNotValid:
+      'The draw claim was not valid: your move was played and your opponent received a draw offer.',
+    moveDeclinesDraw: 'Making a move instead declines the offer.',
     opponentJoined: 'The opponent joined the game!',
     connectionError: 'Connection error with the server.',
   },
   labels: {
     sides: { 0: 'White', 1: 'Black' },
+    winners: { 0: 'Winner: White', 1: 'Winner: Black' },
     playerTypes: { 0: 'Human', 1: 'AI' },
     pieces: {
       Rei: 'King',
@@ -105,6 +112,9 @@ export const en: Messages = {
       'Empate: Regra das 3 posições': 'Draw: threefold repetition',
       'Desistência: Um jogador deixou a partida': 'Resignation: a player left the game',
       'Empate: Tempo esgotado sem material': 'Draw: time out and the other side cannot checkmate',
+      'Empate: Regra das 5 posições': 'Draw: fivefold repetition',
+      'Empate: Regra 75 movimentos': 'Draw: 75-move rule',
+      'Empate: Posição morta': 'Draw: dead position',
     },
     moves: {
       'Roque Menor': 'Short castling',

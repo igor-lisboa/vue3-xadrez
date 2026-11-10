@@ -8,8 +8,6 @@ interface MaterialSummaryLabels {
   title: string
   noMaterial: string
   timeOut: Record<SideId, string>
-  canCheckmate: string
-  cannotCheckmate: string
   sides: Record<SideId, string>
   pieces: Record<PieceName, string>
 }
@@ -37,9 +35,6 @@ function pieceNames(pieces: readonly PieceName[]): string {
         class="list-group-item list-group-item-dark d-flex flex-wrap align-items-center gap-2"
       >
         <strong>{{ labels.sides[side.sideId] }}</strong>
-        <span class="badge rounded-pill" :class="side.canCheckmate ? 'bg-success' : 'bg-secondary'">
-          {{ side.canCheckmate ? labels.canCheckmate : labels.cannotCheckmate }}
-        </span>
         <span class="pieces ms-auto" role="img" :aria-label="pieceNames(side.pieces)">
           <span
             v-for="(piece, index) in side.pieces"

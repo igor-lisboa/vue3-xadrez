@@ -60,8 +60,6 @@ export const it: Messages = {
     title: 'Pezzi rimasti',
     noMaterial: 'Nessuno dei due ha abbastanza pezzi per dare scacco matto.',
     timeOut: { 0: 'Il Bianco ha esaurito il tempo.', 1: 'Il Nero ha esaurito il tempo.' },
-    canCheckmate: 'Può dare scacco matto',
-    cannotCheckmate: 'Non può dare scacco matto',
   },
   review: {
     title: 'Revisione della partita',
@@ -81,11 +79,21 @@ export const it: Messages = {
   game: {
     resign: 'Abbandona',
     offerDraw: 'Proponi patta',
+    claimDraw: 'Reclama la patta',
+    claimDrawHint:
+      'Questa posizione permette di reclamare la patta (triplice ripetizione o regola delle 50 mosse).',
+    claimWithMove: 'Reclama la patta con la mia prossima mossa',
+    claimWithMoveWarning:
+      'Per una ripetizione o la regola delle 50 mosse che la tua prossima mossa creerebbe. Se la richiesta non è valida, la mossa viene giocata comunque e l’avversario riceve una proposta di patta.',
+    claimNotValid:
+      'La richiesta di patta non era valida: la tua mossa è stata giocata e l’avversario ha ricevuto una proposta di patta.',
+    moveDeclinesDraw: 'Se invece giochi una mossa, la proposta viene rifiutata.',
     opponentJoined: 'L’avversario si è unito alla partita!',
     connectionError: 'Errore di connessione con il server.',
   },
   labels: {
     sides: { 0: 'Bianco', 1: 'Nero' },
+    winners: { 0: 'Vincitore: il Bianco', 1: 'Vincitore: il Nero' },
     playerTypes: { 0: 'Umano', 1: 'IA' },
     pieces: {
       Rei: 'Re',
@@ -106,6 +114,9 @@ export const it: Messages = {
       'Desistência: Um jogador deixou a partida': 'Abbandono: un giocatore ha lasciato la partita',
       'Empate: Tempo esgotado sem material':
         'Patta: tempo scaduto e l’avversario non può dare scacco matto',
+      'Empate: Regra das 5 posições': 'Patta: quintuplice ripetizione',
+      'Empate: Regra 75 movimentos': 'Patta: regola delle 75 mosse',
+      'Empate: Posição morta': 'Patta: posizione morta',
     },
     moves: {
       'Roque Menor': 'Arrocco corto',

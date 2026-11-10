@@ -36,7 +36,7 @@ const foolsMate = () =>
       H4: 'Rainha-1',
     }),
     {},
-    { finalizado: { tipo: 'Vitória: Preto' } },
+    { finalizado: { tipo: 'Vitória: Preto' }, ladoIdVencedor: 1 },
   )
 
 /** Only the two kings and a white bishop are left. */
@@ -71,7 +71,7 @@ describe('GameReviewView', () => {
     const wrapper = await open()
     expect(getGameHistory).toHaveBeenCalledWith(7)
     expect(wrapper.find('h1').text()).toBe('Game review')
-    expect(wrapper.find('.lead').text()).toBe('Room 7 · Black wins')
+    expect(wrapper.find('.lead').text()).toBe('Room 7 · Black wins · Winner: Black')
     expect(wrapper.findAll('.board-house')).toHaveLength(64)
     expect(moveButtons(wrapper)).toEqual([
       'Pawn F2 → F3',
@@ -81,6 +81,32 @@ describe('GameReviewView', () => {
     ])
     expect(wrapper.text()).toContain('Move 4 of 4')
     expect(wrapper.find('.material-summary').exists()).toBe(false)
+  })
+
+  it('names the winner of a resignation from ladoIdVencedor', async () => {
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory(
+        [],
+        startingPosition(),
+        {},
+        {
+          finalizado: { tipo: 'Desistência: Um jogador deixou a partida' },
+          ladoIdVencedor: 0,
+        },
+      ),
+    )
+    const wrapper = await open()
+    expect(wrapper.find('.lead').text()).toBe(
+      'Room 7 · Resignation: a player left the game · Winner: White',
+    )
+  })
+
+  it('names a dead-position draw without a winner', async () => {
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory([], startingPosition(), {}, { finalizado: { tipo: 'Empate: Posição morta' } }),
+    )
+    const wrapper = await open()
+    expect(wrapper.find('.lead').text()).toBe('Room 7 · Draw: dead position')
   })
 
   it('says when the game is still in progress', async () => {
@@ -188,7 +214,7 @@ describe('GameReviewView', () => {
     setLocale('pt-BR')
     const wrapper = await open()
     expect(wrapper.find('h1').text()).toBe('Revisão da partida')
-    expect(wrapper.find('.lead').text()).toBe('Sala 7 · Vitória das pretas')
+    expect(wrapper.find('.lead').text()).toBe('Sala 7 · Vitória das pretas · Vencedor: pretas')
     expect(wrapper.text()).toContain('Jogada 4 de 4')
     expect(moveButtons(wrapper)[3]).toBe('Rainha D8 → H4')
     expect(wrapper.find('button[aria-label="Jogada anterior"]').exists()).toBe(true)

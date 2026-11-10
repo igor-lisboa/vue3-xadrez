@@ -11,9 +11,9 @@ A browser client for a chess game. A player:
 
 1. creates a game (or enters an existing one by id),
 2. takes a side (White or Black), unless the game was created against the AI,
-3. plays moves, offers or answers draws and resets, promotes pawns, and may resign.
+3. plays moves, offers, answers or claims draws, offers or answers resets, promotes pawns, and may resign.
 
-The frontend holds no game rules of its own. The API decides what is legal and what has ended. The frontend only shows the state and sends the player's actions. The one exception is the material rule of section 3.5, which the frontend repeats only to explain a result the API has already decided.
+The frontend holds no game rules of its own. The API decides what is legal, what has ended, who won, and when a draw can be claimed, following the FIDE Laws of Chess. The frontend only shows the state (`finalizado`, `ladoIdVencedor`, `empateReivindicavel`) and sends the player's actions. It has no copy of any draw, repetition or insufficient-material rule.
 
 Anyone who knows a room number can also review that game's moves, without taking a side.
 
@@ -25,26 +25,25 @@ Anyone who knows a room number can also review that game's moves, without taking
 | Select side | `/game/:id?side=0\|1` | Choose a free side of a game and join it |
 | Game | `/game/:id/side/:sideId` | Board, clocks and actions |
 | Promote pawn | `/game/:id/side/:sideId/promote-pawn` | Choose the piece for a promoted pawn |
-| End game | `/game/:id/side/:sideId/end-game` | Result of a finished game (with the details of a material draw); new game, propose a reset, or open the review |
-| Answer proposal | `/game/:id/side/:sideId/answer-proposal/tie` or `/reset` | Accept or decline a draw or reset offer |
+| End game | `/game/:id/side/:sideId/end-game` | Result and winner of a finished game (with the details of a material draw); new game, propose a reset, or open the review |
+| Answer proposal | `/game/:id/side/:sideId/answer-proposal/reset` | Accept or decline a reset offer |
 | Game review | `/game/:id/review?side=0\|1` | Step through the moves of a game on the board. Open to anyone; not part of the game flow |
 
 Any other path goes to Home.
 
-Invalid route params (a game id that is not a non-negative integer, a side that is not 0 or 1, an unknown proposal type) send the player to Home. On Game review, the `side` query only turns the board: a missing or invalid value shows it from White's side.
+Invalid route params (a game id that is not a non-negative integer, a side that is not 0 or 1) send the player to Home. A draw offer has no screen of its own (it is answered on Game), so `/answer-proposal/tie` is an unknown path and goes to Home too. On Game review, the `side` query only turns the board: a missing or invalid value shows it from White's side.
 
 ### 2.1 Screen rules
 
 The screen a player is on is decided by the game state, not chosen by the player. After each load of the game, the frontend resolves the screen with these rules, first match wins:
 
-1. A draw offer waits for an answer → **Answer proposal (tie)**.
-2. A reset offer waits for an answer → **Answer proposal (reset)**.
+1. A reset offer waits for an answer → **Answer proposal**. Both sides go there: the side that received the offer answers, and the side that made it sees a waiting message.
+2. This side must promote a pawn → **Promote pawn**.
+3. This side has no player (it was left empty) → **Select side**, with that side preselected.
+4. The game has finished → **End game**.
+5. Otherwise → **Game**.
 
-   Both sides go to the same screen for rules 1 and 2: the side that received the offer answers, and the side that made it sees a waiting message.
-3. This side must promote a pawn → **Promote pawn**.
-4. This side has no player (it was left empty) → **Select side**, with that side preselected.
-5. The game has finished → **End game**.
-6. Otherwise → **Game**.
+An open draw offer is not a rule: it never stops play, so both sides stay on **Game** (section 3.3). Only a pending pawn promotion blocks moves.
 
 When the resolved screen differs from the current one, the frontend navigates. When it is the same, it stays. A player can therefore be moved between screens by the other player's actions, through the socket events below.
 
@@ -79,9 +78,11 @@ Texts quoted in this section are the English versions. Each language shows its o
 Layout, top to bottom:
 
 1. An information bar: game id and game type, for example `7 | Human X AI`.
-2. The board, 8 × 8 squares. The board is shown from the player's side: Black sees it reversed.
-3. The clocks (White, Black), only for games with a time limit.
-4. Two buttons: **Resign** and **Offer draw**.
+2. The open draw offer, if there is one (see Draws below).
+3. The board, 8 × 8 squares. The board is shown from the player's side: Black sees it reversed.
+4. The clocks (White, Black), only for games with a time limit.
+5. The buttons **Resign** and **Offer draw** (or **Claim draw**, see below).
+6. On the player's turn, the option **Claim a draw with my next move**.
 
 Board behaviour:
 
@@ -101,10 +102,18 @@ Clocks:
 
 Actions:
 
-- **Resign**: asks the API to end the game for this side. On success, shows the message and goes to Home.
-- **Offer draw**: offers a draw to the opponent, shows the message, and reloads the game. The screen then changes to the waiting or answer screen.
+- **Resign**: asks the API to end the game for this side, sending the side in the `lado` header (the API refuses a side resigning for the other one). The opponent wins. On success, shows the message and goes to Home.
+- **Offer draw**: offers a draw to the opponent, shows the message, and reloads the game. Either side may offer at any time while the game runs, on turn or not. The button is hidden while an offer is open.
 
-Live updates (socket events, see section 5): the game reloads when a move is made, a draw or reset is offered or answered, or the game finishes. When the opponent joins, the player is told so and the game reloads. A server error on the socket shows "Connection error with the server.".
+Draws:
+
+- **An open offer never blocks the board.** Both players stay on this screen and either may move.
+- **The side that received the offer** sees, above the board, "You received a draw proposal", the note "Making a move instead declines the offer." and the buttons **Accept** and **Decline**. Answering shows the message and reloads the game. Making a move instead declines the offer: the API clears it, and the panel closes when the game reloads.
+- **The side that made the offer** sees "Waiting for the answer to the draw proposal..." in the same place. It closes when the answer arrives (`empatePropostoResposta`), also when the opponent declined by moving.
+- **Claim draw.** When the API reports `empateReivindicavel` and it is the player's turn, **Claim draw** replaces **Offer draw**, with the line "This position lets you claim a draw (threefold repetition or 50-move rule)." under the buttons. It sends the same request as an offer, with no body; the API ends the game at once ("Empate reivindicado com sucesso!") and the player goes to End game. The value is reloaded after every move (the player's own move and the `jogadaRealizada` event), and the button is hidden once the game has ended. The frontend never checks repetitions or move counts itself.
+- **Claim a draw with my next move** (advanced). On the player's turn, a switch under the buttons sends the next move played on the board as a draw claim for the position that move would make, instead of playing it. A warning under the switch says that if the claim is not valid, the move is played anyway and the opponent receives a draw offer. A valid claim ends the game without the move. A claim that is not valid shows the API's message followed by "The draw claim was not valid: your move was played and your opponent received a draw offer.", and the board reloads. The switch turns off after one move, and when the turn passes. `empateReivindicavel` does not cover this claim, so the switch is offered on every turn; it is not shown in an AI X AI game.
+
+Live updates (socket events, see section 7): the game reloads when a move is made, a draw or reset is offered or answered, or the game finishes. When the opponent joins, the player is told so and the game reloads. A server error on the socket shows "Connection error with the server.".
 
 When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A failure of that call is logged to the console and does not block the game.
 
@@ -117,20 +126,22 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 ### 3.5 End game
 
 - Heading: the result of the game in the language in use (see section 6.2).
+- **Winner.** Under the heading, "Winner: White" or "Winner: Black", from the API's `ladoIdVencedor`, also after a resignation (the opponent wins) or a time out. A draw shows no winner. The winner is never worked out from the ending label.
 - **Details of a material draw.** The API ends a game as "Draw: insufficient material" when neither side can checkmate, and as "Draw: time out and the other side cannot checkmate" when the side on the move runs out of time and the other side cannot checkmate. A time out that the other side can convert is a win for that side, so it shows no details. For these two results only, the screen shows, under the heading:
   - **The cause**: "Neither side has enough pieces left to checkmate." or "White ran out of time." (or Black).
-  - **The pieces left**, one line per side: the side's name, whether those pieces can checkmate, and the pieces as pictures (King first, then Queen, Rook, Bishop, Knight, Pawn), named for screen readers.
-  - **How the cause is found.** The frontend repeats the API's material rule, counting the king. A side cannot checkmate only with a bare king, king and bishop, king and knight, or king and two knights; with any other pieces it can (for example king and two rooks, or king, queen and knight). Insufficient material is a draw only when both sides cannot checkmate. The cause of a time-out draw is the side on the move, which is the side that ran out of time. The clocks are not read, because the API keeps the time of the side on the move after the game has ended. The rule only explains the result; the API's result is always the one shown.
+  - **The pieces left**, one line per side: the side's name and the pieces as pictures (King first, then Queen, Rook, Bishop, Knight, Pawn), named for screen readers.
+  - **How the cause is found.** The cause comes from the ending the API chose; the frontend does not judge which pieces can checkmate (the API decides, and for example king and two knights against a bare king is not a draw). The cause of a time-out draw is the side on the move, which is the side that ran out of time. The clocks are not read, because the API keeps the time of the side on the move after the game has ended.
 - **New game?** goes to Home.
 - **Propose reset** offers a reset to the opponent, shows the message, and returns to the game. The reset can be answered on the Answer proposal screen.
 - **Review game** opens Game review for this game, with the board turned to the player's side.
 - The screen returns to the game when the opponent proposes a draw or reset, or answers one.
+- The automatic draws "Draw: fivefold repetition", "Draw: 75-move rule" and "Draw: dead position" show the heading only.
 
 ### 3.6 Answer proposal
 
-- Shown with the kind of proposal in the heading: "You received a draw proposal" or "You received a reset proposal".
+- Only for a reset offer (a draw offer is answered on Game, section 3.3). The heading is "You received a reset proposal".
 - Only the side that received the offer sees the options **Accept** and **Decline**. **Respond** is disabled until one is chosen.
-- The other side sees "Waiting for the answer to the draw proposal..." (or reset) and nothing else.
+- The other side sees "Waiting for the answer to the reset proposal..." and nothing else.
 - On submit, shows the message and returns to the game.
 - The screen reloads when the answer arrives over the socket.
 
@@ -138,7 +149,7 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 
 Lets anyone who knows the room number see how a game went, step by step. It is opened from End game (**Review game**) or from Home (**Review a game**). The viewer takes no side and cannot change the game.
 
-- **Heading**: "Game review", then a line with the room and the result: "Room 7 · Black wins", or "Room 7 · Game in progress" for a game that has not finished. A game in progress shows the moves played up to the moment the screen opened; it does not follow new moves.
+- **Heading**: "Game review", then a line with the room, the result and, when the API names one (`ladoIdVencedor`), the winner: "Room 7 · Black wins · Winner: Black", "Room 7 · Draw: dead position", or "Room 7 · Game in progress" for a game that has not finished. A game in progress shows the moves played up to the moment the screen opened; it does not follow new moves.
 - **Details of a material draw**: the same as on End game (section 3.5).
 - **Board.** Shows the game's **final position** when the screen opens (the current one, for a game in progress), from White's side, or from Black's side when the link has `?side=1` (End game adds the player's side). The board cannot be clicked. The move behind the position is marked with the board colours of section 4: the square the piece left is yellow, the square it reached is green, or red when it captured a piece. Special moves are named in the square tooltip.
 - **Controls.** Four buttons go to the starting position, the previous move, the next move and the final position, and a text shows where the viewer is ("Move 12 of 40", or "Starting position"). A button that cannot go further is disabled. The keys Left, Right, Home and End do the same, except while a form control (such as the language list) has the focus.
@@ -154,14 +165,16 @@ The visual design is kept as it was. Changes to appearance need a deliberate dec
 
 - **Theme.** Dark page background (Bootstrap `bg-dark`), white text, centred content. The header is the app title, linked to Home, with the language selector on the right (a small dark `form-select` that lists the languages by their own names, see section 6). The footer credits the author and the API repository in light grey.
 - **Typography and buttons.** Bootstrap 5 defaults. Headings are the page title (`h1`), a lead sentence (`lead`), and `h2` for "OR" on Home. Under "OR", **Enter a room** and **Review a game** sit side by side, and wrap on narrow phones. Action buttons are large (`btn-lg`) and bold. Choice groups are radio button groups (outlined primary buttons).
-- **Button variants.** Primary actions use light buttons with a white border. Offering a draw is red (`btn-danger`); offering a reset is dark (`btn-dark`).
+- **Button variants.** Primary actions use light buttons with a white border. Offering or claiming a draw is red (`btn-danger`); offering a reset and declining a draw offer are dark (`btn-dark`).
 - **Pieces.** All twelve pieces come from one SVG set, `src/assets/pieces/standard.svg` (the Wikimedia "cburnett" set, CC BY-SA 3.0; its license text is in the file). White and black pieces share the same drawing, so they look alike, and the pictures are not font glyphs, so they look the same on every device. The API's Unicode symbols are not used.
 - **Board.** Square board with an 8 px rebeccapurple border, rounded corners. It is 656 px wide on large screens and shrinks to the screen width on phones (the 8 × 8 squares and the pictures scale with it). Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
-- **End game.** The heading, then, for a material draw, a `lead` sentence with the cause and a dark list (`list-group`, one item per side, 656 px wide at most) where each item shows the side's name in bold, a pill badge (green "Can checkmate", grey "Cannot checkmate") and the pieces as 2 rem pictures. Below, the two buttons side by side in a `btn-group` (**New game?** light, **Propose reset** dark), and **Review game** (light) on its own line under them.
+- **End game.** The heading, then the winner as a `lead` line (none after a draw), then, for a material draw, a `lead` sentence with the cause and a dark list (`list-group`, one item per side, 656 px wide at most) where each item shows the side's name in bold and the pieces as 2 rem pictures. Below, the two buttons side by side in a `btn-group` (**New game?** light, **Propose reset** dark), and **Review game** (light) on its own line under them.
 - **Game review.** The review screen has an `h1` ("Game review"), a `lead` line with the room and the result, the material details of a material draw (as on End game), the board (same look and colours as the game board, not clickable, highlighting the last move as origin yellow, destination green or red), a row of four outlined light buttons (« ‹ › ») in a Bootstrap `btn-group` with the position text under it, and the move list: a `table-dark` small table, 656 px wide at most and 18 rem tall at most (it scrolls), whose moves are small buttons (outlined light, filled light for the move on the board). The note for a game that cannot be replayed is a light alert. **New game?** (light) is at the bottom.
 - **Spinner.** A light Bootstrap spinner in place of the content while loading.
 - **Clocks.** A list of two Bootstrap list items, centred, with a blue pill badge showing the time. 25 % wide on screens wider than 576 px, full width on phones.
-- **Actions.** Resign and Offer draw sit side by side on wider screens and stacked, full width, on phones.
+- **Actions.** Resign and Offer draw (or Claim draw) sit side by side on wider screens and stacked, full width, on phones. The claim hint is a small line under them.
+- **Draw offer.** A light alert above the board, 656 px wide at most: for the side that received it, the offer in bold, the note in small text, and **Accept** (light) and **Decline** (dark) side by side; for the side that made it, the waiting sentence only.
+- **Claim with the next move.** A Bootstrap switch (`form-switch`) under the actions, as wide as them, with its warning in small yellow text (`text-warning`).
 - **Phones.** Layout works from 320 px wide with a 16 px gutter on each side and no horizontal scrolling. The page does not zoom: a double tap or a pinch never resizes the screen (scrolling still works). Taps on squares do not wait for double-tap zoom, and long presses do not select the text of the board.
 - **Install.** The app can be installed on the home screen as a web app (PWA). Installing needs no app store. See the install rules below.
 - **Install rules.** The app ships a web app manifest (name, icons, standalone display) and a service worker. The service worker stores the app's own files so the app opens when the connection is slow. It never stores API answers: game data always comes from the server.
@@ -182,15 +195,16 @@ The frontend's services, one file per area under `src/api/services/`:
 | Catalogue | `GET /tipos-de-peca` | Piece types, to read the pieces of the board |
 | Catalogue | `GET /tipos-de-peca/promocao-peao` | Promotion choices |
 | Games | `POST /jogos` | Create a game |
-| Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state |
-| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`) and the side on the move, for the game review |
+| Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state, with `ladoIdVencedor` and `empateReivindicavel` |
+| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`), the winner (`ladoIdVencedor`) and the side on the move, for the game review |
 | Games | `GET /jogos/{id}/lado-sem-jogador` | Free sides |
 | Players | `POST /jogos/{id}/jogadores` | Join a side (`tipoId` 0, human) |
-| Players | `DELETE /jogos/{id}/jogadores/{ladoId}` | Resign |
+| Players | `DELETE /jogos/{id}/jogadores/{ladoId}` with header `lado` = `ladoId` | Resign |
 | Moves | `GET /jogos/{id}/pecas/{casa}/possiveis-jogadas` | Legal moves of a piece |
 | Moves | `POST /jogos/{id}/pecas/{origem}/move/{destino}` | Play a move |
 | Moves | `POST /jogos/{id}/promove-peao/{pecaId}` | Promote a pawn |
-| Proposals | `PUT /jogos/{id}/{empate\|reset}/propoe` | Offer a draw or reset |
+| Proposals | `PUT /jogos/{id}/empate/propoe`, no body, or `{ origem, destino }` | Offer or claim a draw; claim for the next move |
+| Proposals | `PUT /jogos/{id}/reset/propoe` | Offer a reset |
 | Proposals | `POST /jogos/{id}/{empate\|reset}/responde` with `{ resposta }` | Answer an offer |
 | AI | `GET /ia` | Ask the server to run the AI |
 
@@ -198,7 +212,16 @@ Player actions identify the acting side with the `lado` header (0 or 1).
 
 Every request sends the `Accept-Language` header with the language the player chose (`en`, `pt-BR`, `pt`, `fr`, `it` or `de`), so the API can answer its messages in that language.
 
-Requested actions in a game state (`acoesSolicitadas`) drive the screen rules: `responderPropostaEmpate`, `responderPropostaReset`, `promocaoPeao`.
+Requested actions in a game state (`acoesSolicitadas`): `responderPropostaReset` and `promocaoPeao` drive the screen rules; `responderPropostaEmpate` only shows the draw offer on Game.
+
+Fields of the game state read for the result and draws:
+
+- `finalizado`: the ending label (one of the 12 of `GET /tipos-de-finalizacao`, ids 0 to 11), or null while the game runs.
+- `ladoIdVencedor`: 0 (White), 1 (Black), or null while the game runs and after a draw.
+- `empatePropostoPeloLadoId`: the side with an open draw offer, or null. An open offer is cleared when the side that received it moves, and when the game ends in any other way.
+- `empateReivindicavel`: true when the side on turn could claim a draw now (threefold repetition or 50-move rule) for the position on the board; always false once the game has ended.
+
+`PUT /jogos/{id}/empate/propoe` answers `data` `{ reivindicado, jogadaRealizada }`. Without a body it claims when the position allows it (`reivindicado: true`, the game ends) and otherwise leaves an offer. With `{ origem, destino }` (both required, or the API refuses with "Informe a casa de origem e a casa de destino da jogada pretendida") it claims for the position that move would make: a valid claim ends the game without the move; otherwise the move is played (`jogadaRealizada` is its record) and an offer is left.
 
 ## 6. Language and labels
 
@@ -239,6 +262,10 @@ The API uses Portuguese identifiers. The frontend keeps them on the wire and in 
 | Empate: Comum acordo | Draw: by agreement |
 | Empate: Regra das 3 posições | Draw: threefold repetition |
 | Desistência: Um jogador deixou a partida | Resignation: a player left the game |
+| Empate: Regra das 5 posições | Draw: fivefold repetition |
+| Empate: Regra 75 movimentos | Draw: 75-move rule |
+| Empate: Posição morta | Draw: dead position |
+| `ladoIdVencedor` 0 / 1 | Winner: White / Winner: Black |
 
 Move names are shown as "Short castling", "Long castling", "Pawn double step", "Pawn promotion", "En passant", "Knight move". Each language has its own names for these values.
 
@@ -253,12 +280,12 @@ The socket connects to the API base URL with the query `jogador = "{gameId}-{sid
 | Event | Handled by | Effect |
 | --- | --- | --- |
 | `adversarioEntrou` | Game | Notify the player, reload |
-| `jogadaRealizada` | Game | Reload |
+| `jogadaRealizada` | Game | Reload (this also refreshes `empateReivindicavel`; the payload carries it for the side now on turn, but the frontend reads it from the reloaded state) |
 | `empateProposto` | Game, End game | Reload (Game); End game returns to Game |
-| `empatePropostoResposta` | Game, Answer proposal, End game | Reload (Game, Answer proposal); End game returns to Game |
+| `empatePropostoResposta` | Game, End game | Reload (Game); End game returns to Game. Also sent, with no payload, to the proposer when the opponent moved instead of answering |
 | `resetProposto` | Game, End game | Same as `empateProposto` |
-| `resetPropostoResposta` | Game, Answer proposal, End game | Same as `empatePropostoResposta` |
-| `jogoFinalizado` | Game | Reload |
+| `resetPropostoResposta` | Game, Answer proposal, End game | Reload (Game, Answer proposal); End game returns to Game |
+| `jogoFinalizado` | Game | Reload. The payload is `{ jogoFinalizacao, ladoIdVencedor }`; the frontend reads both from the reloaded state |
 | `uncaughtException` | All game screens | Notify "Connection error with the server." |
 
 The socket is closed when the screen is left.

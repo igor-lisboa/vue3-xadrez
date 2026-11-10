@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { RouteRecordRaw } from 'vue-router'
 import { routes } from '@/router'
 import { parseGameId, parseSideId } from '@/router/params'
-import { requireGameAndSide, requireGameId, requireProposalType } from '@/router/guards'
+import { requireGameAndSide, requireGameId } from '@/router/guards'
 import { isOnScreen, screenLocation } from '@/router/screen-location'
 
 type RouteWithProps = RouteRecordRaw & { props: (to: unknown) => unknown }
@@ -34,12 +34,6 @@ describe('guards', () => {
     expect(requireGameAndSide({ id: '3', sideId: '9' })).toEqual({ name: 'home' })
     expect(requireGameAndSide({ id: 'x', sideId: '0' })).toEqual({ name: 'home' })
   })
-
-  it('checks the proposal type too', () => {
-    expect(requireProposalType({ id: '3', sideId: '0', type: 'tie' })).toBe(true)
-    expect(requireProposalType({ id: '3', sideId: '0', type: 'draw' })).toEqual({ name: 'home' })
-    expect(requireProposalType({ id: 'x', sideId: '0', type: 'reset' })).toEqual({ name: 'home' })
-  })
 })
 
 describe('route props and guards', () => {
@@ -65,14 +59,15 @@ describe('route props and guards', () => {
     })
   })
 
-  it('give the answer view the proposal type', () => {
-    expect(
-      findRoute('answerProposal').props({ params: { id: '5', sideId: '1', type: 'reset' } }),
-    ).toEqual({
+  it('give the reset answer view its game and side', () => {
+    expect(findRoute('answerProposal').props({ params: { id: '5', sideId: '1' } })).toEqual({
       gameId: 5,
       sideId: 1,
-      proposalType: 'reset',
     })
+  })
+
+  it('only has an answer screen for a reset: a draw offer is answered on the game', () => {
+    expect(findRoute('answerProposal').path).toBe('/game/:id/side/:sideId/answer-proposal/reset')
   })
 
   it('give the review its game and turn the board to White unless the link asks for Black', () => {
@@ -97,7 +92,7 @@ describe('route props and guards', () => {
     expect(guard('game', { id: '1', sideId: '0' })).toBe(true)
     expect(guard('promotePawn', { id: '1', sideId: '5' })).toEqual({ name: 'home' })
     expect(guard('endGame', { id: '1', sideId: '1' })).toBe(true)
-    expect(guard('answerProposal', { id: '1', sideId: '1', type: 'tie' })).toBe(true)
+    expect(guard('answerProposal', { id: '1', sideId: '1' })).toBe(true)
     expect(guard('gameReview', { id: '1' })).toBe(true)
     expect(guard('gameReview', { id: 'x' })).toEqual({ name: 'home' })
   })
@@ -126,16 +121,15 @@ describe('screen location', () => {
       params: { id: 2 },
       query: { side: 0 },
     })
-    expect(screenLocation({ name: 'answerProposal', kind: 'empate' }, 2, 1)).toEqual({
+    expect(screenLocation({ name: 'answerProposal' }, 2, 1)).toEqual({
       name: 'answerProposal',
-      params: { id: 2, sideId: 1, type: 'tie' },
+      params: { id: 2, sideId: 1 },
     })
   })
 
   it('knows whether the route already shows the screen', () => {
-    const current = { name: 'answerProposal', params: { type: 'tie' } } as never
-    expect(isOnScreen(current, { name: 'answerProposal', kind: 'empate' })).toBe(true)
-    expect(isOnScreen(current, { name: 'answerProposal', kind: 'reset' })).toBe(false)
+    const current = { name: 'answerProposal', params: {} } as never
+    expect(isOnScreen(current, { name: 'answerProposal' })).toBe(true)
     expect(isOnScreen({ name: 'game', params: {} } as never, { name: 'game' })).toBe(true)
     expect(isOnScreen({ name: 'game', params: {} } as never, { name: 'endGame' })).toBe(false)
   })

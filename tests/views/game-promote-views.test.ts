@@ -9,7 +9,7 @@ import {
 import { createGame, getGameSummary, listSidesWithoutPlayer } from '@/api/services/games'
 import { joinGame, leaveGame } from '@/api/services/players'
 import { promotePawn } from '@/api/services/moves'
-import { answerProposal, proposeToOpponent } from '@/api/services/proposals'
+import { proposeDraw } from '@/api/services/proposals'
 import { triggerAi } from '@/api/services/ai'
 import { askText, notify } from '@/services/dialogs'
 import HomeView from '@/views/HomeView.vue'
@@ -47,7 +47,11 @@ vi.mock('@/api/services/moves', () => ({
   makeMove: vi.fn(),
   promotePawn: vi.fn(),
 }))
-vi.mock('@/api/services/proposals', () => ({ proposeToOpponent: vi.fn(), answerProposal: vi.fn() }))
+vi.mock('@/api/services/proposals', () => ({
+  proposeDraw: vi.fn(),
+  proposeReset: vi.fn(),
+  answerProposal: vi.fn(),
+}))
 vi.mock('@/api/services/ai', () => ({ triggerAi: vi.fn() }))
 vi.mock('@/services/dialogs', () => ({ notify: vi.fn(), askText: vi.fn() }))
 vi.mock('socket.io-client', () => ({
@@ -102,12 +106,12 @@ describe('GameView', () => {
   })
 
   it('offers a draw and reloads the game', async () => {
-    vi.mocked(proposeToOpponent).mockResolvedValue('Offered')
+    vi.mocked(proposeDraw).mockResolvedValue({ message: 'Offered', claimed: false })
     const wrapper = mount(GameView, { props })
     await settle()
     await wrapper.findAll('button')[1]!.trigger('click')
     await settle()
-    expect(proposeToOpponent).toHaveBeenCalledWith(7, 0, 'empate')
+    expect(proposeDraw).toHaveBeenCalledWith(7, 0)
     expect(notify).toHaveBeenCalledWith('Offered')
     expect(getGameSummary).toHaveBeenCalledTimes(2)
   })

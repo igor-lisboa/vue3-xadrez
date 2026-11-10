@@ -63,8 +63,6 @@ export interface Messages {
     title: string
     noMaterial: string
     timeOut: Record<SideId, string>
-    canCheckmate: string
-    cannotCheckmate: string
   }
   /** Game review screen: the board and the list of moves of a game. */
   review: {
@@ -84,12 +82,24 @@ export interface Messages {
   game: {
     resign: string
     offerDraw: string
+    /** Shown instead of offerDraw when the API says the side on turn may claim a draw. */
+    claimDraw: string
+    claimDrawHint: string
+    /** Option to claim a draw for the position the next move would make. */
+    claimWithMove: string
+    claimWithMoveWarning: string
+    /** Shown after a claim with a move that was not valid: the move was played. */
+    claimNotValid: string
+    /** Under a received draw offer: a move declines it. */
+    moveDeclinesDraw: string
     opponentJoined: string
     connectionError: string
   }
   /** Translations of the values the API sends in Portuguese. */
   labels: {
     sides: Record<SideId, string>
+    /** The winner the API names in ladoIdVencedor. */
+    winners: Record<SideId, string>
     playerTypes: Record<PlayerTypeId, string>
     pieces: Record<PieceName, string>
     endings: Record<EndingLabel, string>

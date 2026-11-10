@@ -90,6 +90,30 @@ describe('useChessBoard', () => {
     unmount()
   })
 
+  it('sends the move through the caller when it gives its own way to play', async () => {
+    vi.mocked(listPossibleMoves).mockResolvedValue([toE4])
+    const playMove = vi.fn(async () => undefined)
+    const summary = ref(makeSummary())
+    const onMoveAttempted = vi.fn(async () => undefined)
+    const { result, unmount } = runComposable(() =>
+      useChessBoard({
+        gameId: 7,
+        sideId: 0,
+        summary,
+        squares: ref(squares),
+        pieces: ref(pieceTypes),
+        onMoveAttempted,
+        playMove,
+      }),
+    )
+    await result.selectHouse(indexOf('E2'))
+    await result.selectHouse(indexOf('E4'))
+    expect(playMove).toHaveBeenCalledWith('E2', 'E4')
+    expect(makeMove).not.toHaveBeenCalled()
+    expect(onMoveAttempted).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
   it('still reloads the game when the move is refused', async () => {
     vi.mocked(listPossibleMoves).mockResolvedValue([toE4])
     vi.mocked(makeMove).mockRejectedValue(new Error('illegal'))

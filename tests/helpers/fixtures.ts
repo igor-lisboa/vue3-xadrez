@@ -59,6 +59,8 @@ export function makeSummary(overrides: Partial<GameSummary> = {}): GameSummary {
     ladosIdDeslogados: [],
     enPassantCasaCaptura: null,
     finalizado: null,
+    ladoIdVencedor: null,
+    empateReivindicavel: false,
     tipoJogo: 'Humano X Humano',
     tabuleiro: emptyRows(),
     ...overrides,

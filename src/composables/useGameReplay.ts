@@ -31,6 +31,7 @@ function isFormControl(target: EventTarget | null): boolean {
 interface ReviewedGame {
   replay: GameReplay
   ending: EndingLabel | null
+  winner: SideId | null
   sideOnMove: SideId
 }
 
@@ -49,6 +50,7 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
       return {
         replay: buildReplay(history),
         ending: history.finalizado?.tipo ?? null,
+        winner: history.ladoIdVencedor,
         sideOnMove: history.ladoIdAtual,
       }
     },
@@ -57,6 +59,8 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
   )
   const replay = computed(() => game.value?.replay ?? null)
   const ending = computed(() => game.value?.ending ?? null)
+  /** The side the API names as the winner, or null for a draw or a game in progress. */
+  const winner = computed(() => game.value?.winner ?? null)
   /** Why an insufficient-material draw happened, read from the final position. */
   const material = computed(() => {
     const reviewed = game.value
@@ -114,6 +118,7 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
   return {
     replay,
     ending,
+    winner,
     material,
     loading,
     houses,

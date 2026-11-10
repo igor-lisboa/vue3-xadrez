@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { proposeToOpponent } from '@/api/services/proposals'
+import { proposeReset } from '@/api/services/proposals'
 import type { SideId } from '@/api/types/enums'
 import ActionButton from '@/components/common/ActionButton.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
@@ -26,6 +26,11 @@ const endingText = computed(() =>
     ? translateEnding(messages.value.labels.endings, summary.value.finalizado)
     : '',
 )
+/** The API names the winner, also after a resignation or a time out; null after a draw. */
+const winnerText = computed(() => {
+  const winner = summary.value?.ladoIdVencedor ?? null
+  return winner === null ? '' : messages.value.labels.winners[winner]
+})
 const material = computed(() =>
   summary.value
     ? explainMaterialDraw({
@@ -60,10 +65,8 @@ useGameSocket(props.gameId, props.sideId, {
   resetAnswered: goToGame,
 })
 
-async function proposeReset(): Promise<void> {
-  const message = await proposal.perform(() =>
-    proposeToOpponent(props.gameId, props.sideId, 'reset'),
-  )
+async function offerReset(): Promise<void> {
+  const message = await proposal.perform(() => proposeReset(props.gameId, props.sideId))
   if (message !== undefined) {
     notify(message)
   }
@@ -77,6 +80,7 @@ onMounted(() => void refresh())
   <LoadingSpinner v-if="busy" :label="messages.common.loading" />
   <template v-else>
     <h1>{{ endingText }}</h1>
+    <p v-if="winnerText" class="lead winner">{{ winnerText }}</p>
     <MaterialSummary
       v-if="material"
       class="mt-3"
@@ -89,7 +93,7 @@ onMounted(() => void refresh())
     />
     <div class="btn-group" role="group">
       <ActionButton class="mt-3" @click="goHome">{{ messages.common.newGame }}</ActionButton>
-      <ActionButton class="mt-3" variant="dark" @click="proposeReset">
+      <ActionButton class="mt-3" variant="dark" @click="offerReset">
         {{ messages.endGame.proposeReset }}
       </ActionButton>
     </div>

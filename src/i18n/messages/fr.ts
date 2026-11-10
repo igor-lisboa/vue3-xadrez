@@ -60,8 +60,6 @@ export const fr: Messages = {
     title: 'Pièces restantes',
     noMaterial: 'Aucun des deux camps n’a assez de pièces pour mater.',
     timeOut: { 0: 'Les Blancs n’ont plus de temps.', 1: 'Les Noirs n’ont plus de temps.' },
-    canCheckmate: 'Peut mater',
-    cannotCheckmate: 'Ne peut pas mater',
   },
   review: {
     title: 'Revue de la partie',
@@ -81,11 +79,21 @@ export const fr: Messages = {
   game: {
     resign: 'Abandonner',
     offerDraw: 'Proposer la nulle',
+    claimDraw: 'Réclamer la nulle',
+    claimDrawHint:
+      'Cette position permet de réclamer la nulle (triple répétition ou règle des 50 coups).',
+    claimWithMove: 'Réclamer la nulle avec mon prochain coup',
+    claimWithMoveWarning:
+      'Pour une répétition ou la règle des 50 coups que votre prochain coup provoquerait. Si la réclamation n’est pas valable, le coup est quand même joué et votre adversaire reçoit une proposition de nulle.',
+    claimNotValid:
+      'La réclamation de nulle n’était pas valable : votre coup a été joué et votre adversaire a reçu une proposition de nulle.',
+    moveDeclinesDraw: 'Jouer un coup à la place refuse la proposition.',
     opponentJoined: 'Votre adversaire a rejoint la partie !',
     connectionError: 'Erreur de connexion avec le serveur.',
   },
   labels: {
     sides: { 0: 'Blancs', 1: 'Noirs' },
+    winners: { 0: 'Vainqueur : les Blancs', 1: 'Vainqueur : les Noirs' },
     playerTypes: { 0: 'Humain', 1: 'IA' },
     pieces: {
       Rei: 'Roi',
@@ -106,6 +114,9 @@ export const fr: Messages = {
       'Desistência: Um jogador deixou a partida': 'Abandon : un joueur a quitté la partie',
       'Empate: Tempo esgotado sem material':
         'Nulle : temps écoulé et l’adversaire ne peut pas mater',
+      'Empate: Regra das 5 posições': 'Nulle : quintuple répétition de position',
+      'Empate: Regra 75 movimentos': 'Nulle : règle des 75 coups',
+      'Empate: Posição morta': 'Nulle : position morte',
     },
     moves: {
       'Roque Menor': 'Petit roque',

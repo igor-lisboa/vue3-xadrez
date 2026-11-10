@@ -60,8 +60,6 @@ export const ptBR: Messages = {
     title: 'Peças restantes',
     noMaterial: 'Nenhum dos lados tem peças suficientes para dar xeque-mate.',
     timeOut: { 0: 'O tempo das brancas acabou.', 1: 'O tempo das pretas acabou.' },
-    canCheckmate: 'Pode dar xeque-mate',
-    cannotCheckmate: 'Não pode dar xeque-mate',
   },
   review: {
     title: 'Revisão da partida',
@@ -81,11 +79,21 @@ export const ptBR: Messages = {
   game: {
     resign: 'Desistir',
     offerDraw: 'Oferecer empate',
+    claimDraw: 'Reivindicar empate',
+    claimDrawHint:
+      'Esta posição permite reivindicar o empate (repetição de posições ou regra dos 50 movimentos).',
+    claimWithMove: 'Reivindicar empate com minha próxima jogada',
+    claimWithMoveWarning:
+      'Para uma repetição ou regra dos 50 movimentos que sua próxima jogada causaria. Se a reivindicação não for válida, a jogada é feita mesmo assim e o adversário recebe uma proposta de empate.',
+    claimNotValid:
+      'A reivindicação de empate não era válida: sua jogada foi feita e o adversário recebeu uma proposta de empate.',
+    moveDeclinesDraw: 'Se você fizer uma jogada, a proposta é recusada.',
     opponentJoined: 'O adversário entrou na partida!',
     connectionError: 'Erro de conexão com o servidor.',
   },
   labels: {
     sides: { 0: 'Brancas', 1: 'Pretas' },
+    winners: { 0: 'Vencedor: brancas', 1: 'Vencedor: pretas' },
     playerTypes: { 0: 'Humano', 1: 'IA' },
     pieces: {
       Rei: 'Rei',
@@ -106,6 +114,9 @@ export const ptBR: Messages = {
       'Desistência: Um jogador deixou a partida': 'Desistência: um jogador deixou a partida',
       'Empate: Tempo esgotado sem material':
         'Empate: tempo esgotado e o adversário não pode dar xeque-mate',
+      'Empate: Regra das 5 posições': 'Empate: quíntupla repetição de posições',
+      'Empate: Regra 75 movimentos': 'Empate: regra dos 75 movimentos',
+      'Empate: Posição morta': 'Empate: posição morta',
     },
     moves: {
       'Roque Menor': 'Roque curto',

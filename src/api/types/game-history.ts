@@ -37,4 +37,6 @@ export interface GameHistorySource {
   ladoIdAtual: SideId
   /** How the game ended, or null while it is still being played. */
   finalizado: { tipo: EndingLabel } | null
+  /** The side that won, or null while the game runs and after a draw. */
+  ladoIdVencedor: SideId | null
 }

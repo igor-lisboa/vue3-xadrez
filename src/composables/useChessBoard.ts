@@ -1,6 +1,6 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import type { PieceType, Square } from '@/api/types/catalogue'
-import type { SideId } from '@/api/types/enums'
+import type { SideId, SquareName } from '@/api/types/enums'
 import type { GameSummary } from '@/api/types/game-summary'
 import { listPossibleMoves, makeMove } from '@/api/services/moves'
 import { createBoardHouses } from '@/domain/board'
@@ -17,6 +17,8 @@ interface ChessBoardOptions {
   pieces: Ref<PieceType[]>
   /** Runs after a move is attempted, to reload the game. */
   onMoveAttempted: () => Promise<unknown>
+  /** Sends a move to the API. Plays it directly unless the caller sends it another way. */
+  playMove?: (origin: SquareName, destination: SquareName) => Promise<unknown>
 }
 
 /**
@@ -25,6 +27,9 @@ interface ChessBoardOptions {
  */
 export function useChessBoard(options: ChessBoardOptions) {
   const { gameId, sideId, summary, squares, pieces, onMoveAttempted } = options
+  const playMove =
+    options.playMove ??
+    ((origin: SquareName, destination: SquareName) => makeMove(gameId, sideId, origin, destination))
   const request = useRequest()
   const houses = ref<BoardHouse[]>([])
 
@@ -56,7 +61,7 @@ export function useChessBoard(options: ChessBoardOptions) {
     if (originIndex !== -1 && destination) {
       const origin = houses.value[originIndex]
       if (origin) {
-        await request.perform(() => makeMove(gameId, sideId, origin.house, destination.house))
+        await request.perform(() => playMove(origin.house, destination.house))
       }
       await onMoveAttempted()
       return

@@ -11,29 +11,23 @@ import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
 import { useLocale } from '@/composables/useLocale'
 import { useRequest } from '@/composables/useRequest'
-import { ANSWER_ACTION } from '@/domain/game-screen'
+import { hasPendingAction } from '@/domain/game-screen'
 import { notify } from '@/services/dialogs'
 
-const props = defineProps<{
-  gameId: number
-  sideId: SideId
-  proposalType: 'tie' | 'reset'
-}>()
+const props = defineProps<{ gameId: number; sideId: SideId }>()
 
 const { messages } = useLocale()
 const router = useRouter()
-const kind: ProposalKind = props.proposalType === 'tie' ? 'empate' : 'reset'
+/** A draw offer is answered on the Game screen, so only a reset offer comes here. */
+const kind: ProposalKind = 'reset'
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
 const answer = ref<boolean | null>(null)
 const response = useRequest()
 const busy = computed(() => response.pending.value)
 
 /** Only the side that received the proposal can answer it. The other side waits. */
-const isAnswerer = computed(
-  () =>
-    summary.value?.acoesSolicitadas.some(
-      (requested) => requested.acao === ANSWER_ACTION[kind] && requested.ladoId === props.sideId,
-    ) ?? false,
+const isAnswerer = computed(() =>
+  summary.value ? hasPendingAction(summary.value, 'responderPropostaReset', props.sideId) : false,
 )
 
 const options = computed<ChoiceOption<boolean>[]>(() => [
@@ -41,10 +35,7 @@ const options = computed<ChoiceOption<boolean>[]>(() => [
   { value: false, label: messages.value.answer.decline },
 ])
 
-useGameSocket(props.gameId, props.sideId, {
-  drawAnswered: refresh,
-  resetAnswered: refresh,
-})
+useGameSocket(props.gameId, props.sideId, { resetAnswered: refresh })
 
 async function respond(): Promise<void> {
   const accepted = answer.value

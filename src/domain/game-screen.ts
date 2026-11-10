@@ -1,42 +1,36 @@
-import type { ProposalKind, RequestedActionName, SideId } from '@/api/types/enums'
+import type { RequestedActionName, SideId } from '@/api/types/enums'
 import type { GameSummary } from '@/api/types/game-summary'
-
-/** Action a side must answer for each kind of proposal. */
-export const ANSWER_ACTION: Record<ProposalKind, RequestedActionName> = {
-  empate: 'responderPropostaEmpate',
-  reset: 'responderPropostaReset',
-}
 
 /** Screen a player should be on, given the state of the game. */
 export type GameScreen =
   | { name: 'game' }
   | { name: 'endGame' }
   | { name: 'promotePawn' }
-  | { name: 'answerProposal'; kind: ProposalKind }
+  | { name: 'answerProposal' }
   | { name: 'selectSide'; preselectedSide: SideId }
 
-function hasPendingAction(
+/** True when the action waits for an answer of the given side, or of any side without one. */
+export function hasPendingAction(
   summary: GameSummary,
-  action: GameSummary['acoesSolicitadas'][number]['acao'],
-) {
-  return summary.acoesSolicitadas.some((requested) => requested.acao === action)
+  action: RequestedActionName,
+  sideId?: SideId,
+): boolean {
+  return summary.acoesSolicitadas.some(
+    (requested) =>
+      requested.acao === action && (sideId === undefined || requested.ladoId === sideId),
+  )
 }
 
 /**
  * Decides the screen of a player. The first matching rule wins, in this order:
- * draw answer, reset answer, pawn promotion, side left without a player, finished game.
+ * reset answer, pawn promotion, side left without a player, finished game.
+ * A draw offer is not a rule: it never stops play, so it is answered on the Game screen.
  */
 export function resolveGameScreen(summary: GameSummary, sideId: SideId): GameScreen {
-  if (hasPendingAction(summary, 'responderPropostaEmpate')) {
-    return { name: 'answerProposal', kind: 'empate' }
-  }
   if (hasPendingAction(summary, 'responderPropostaReset')) {
-    return { name: 'answerProposal', kind: 'reset' }
+    return { name: 'answerProposal' }
   }
-  const promotionPending = summary.acoesSolicitadas.some(
-    (requested) => requested.acao === 'promocaoPeao' && requested.ladoId === sideId,
-  )
-  if (promotionPending) {
+  if (hasPendingAction(summary, 'promocaoPeao', sideId)) {
     return { name: 'promotePawn' }
   }
   if (summary.ladosIdDeslogados.includes(sideId)) {
