@@ -10,6 +10,7 @@ import MoveList from '@/components/game/MoveList.vue'
 import ReplayControls from '@/components/game/ReplayControls.vue'
 import { useGameReplay } from '@/composables/useGameReplay'
 import { useLocale } from '@/composables/useLocale'
+import { translateEnding } from '@/domain/labels'
 import { pairMoves } from '@/domain/move-text'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
@@ -26,7 +27,7 @@ const replay = useGameReplay(props.gameId, props.sideId, { onError: goHome })
 const review = computed(() => messages.value.review)
 const resultText = computed(() =>
   replay.ending.value
-    ? messages.value.labels.endings[replay.ending.value]
+    ? translateEnding(messages.value.labels.endings, replay.ending.value)
     : review.value.inProgress,
 )
 const canStep = computed(() => replay.replay.value?.complete === true)

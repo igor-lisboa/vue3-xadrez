@@ -104,7 +104,7 @@ export const en: Messages = {
       'Empate: Comum acordo': 'Draw: by agreement',
       'Empate: Regra das 3 posições': 'Draw: threefold repetition',
       'Desistência: Um jogador deixou a partida': 'Resignation: a player left the game',
-      'Tempo esgotado: o tempo de um jogador acabou': 'Time out: a player ran out of time',
+      'Empate: Tempo esgotado sem material': 'Draw: time out and the other side cannot checkmate',
     },
     moves: {
       'Roque Menor': 'Short castling',

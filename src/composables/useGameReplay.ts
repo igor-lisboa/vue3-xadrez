@@ -5,7 +5,7 @@ import type { PieceType, Square } from '@/api/types/catalogue'
 import type { EndingLabel, SideId } from '@/api/types/enums'
 import { createBoardHouses } from '@/domain/board'
 import { markPlayedMove } from '@/domain/highlights'
-import { explainInsufficientMaterial } from '@/domain/material'
+import { explainMaterialDraw } from '@/domain/material'
 import { orientForSide } from '@/domain/orientation'
 import { buildReplay, type GameReplay } from '@/domain/replay'
 import { useLoader, type LoaderOptions } from './useRequest'
@@ -32,7 +32,6 @@ interface ReviewedGame {
   replay: GameReplay
   ending: EndingLabel | null
   sideOnMove: SideId
-  timeLimitMs: number
 }
 
 /**
@@ -51,7 +50,6 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
         replay: buildReplay(history),
         ending: history.finalizado?.tipo ?? null,
         sideOnMove: history.ladoIdAtual,
-        timeLimitMs: history.tempoDeTurnoEmMilisegundos,
       }
     },
     null,
@@ -63,9 +61,7 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
   const material = computed(() => {
     const reviewed = game.value
     const finalCells = reviewed?.replay.positions.at(-1)
-    return reviewed && finalCells
-      ? explainInsufficientMaterial({ ...reviewed, cells: finalCells })
-      : null
+    return reviewed && finalCells ? explainMaterialDraw({ ...reviewed, cells: finalCells }) : null
   })
 
   /** The step the player chose; null follows the last position until the player moves. */

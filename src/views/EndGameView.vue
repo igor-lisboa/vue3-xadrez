@@ -10,7 +10,8 @@ import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
 import { useLocale } from '@/composables/useLocale'
 import { useRequest } from '@/composables/useRequest'
-import { explainInsufficientMaterial } from '@/domain/material'
+import { translateEnding } from '@/domain/labels'
+import { explainMaterialDraw } from '@/domain/material'
 import { notify } from '@/services/dialogs'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
@@ -21,15 +22,16 @@ const { summary, refresh } = useGameState(props.gameId, props.sideId)
 const proposal = useRequest()
 const busy = computed(() => proposal.pending.value)
 const endingText = computed(() =>
-  summary.value?.finalizado ? messages.value.labels.endings[summary.value.finalizado] : '',
+  summary.value?.finalizado
+    ? translateEnding(messages.value.labels.endings, summary.value.finalizado)
+    : '',
 )
 const material = computed(() =>
   summary.value
-    ? explainInsufficientMaterial({
+    ? explainMaterialDraw({
         ending: summary.value.finalizado,
         cells: summary.value.tabuleiro.flat(),
         sideOnMove: summary.value.ladoIdAtual,
-        timeLimitMs: summary.value.tempoDeTurnoEmMilisegundos,
       })
     : null,
 )

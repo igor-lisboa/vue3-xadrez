@@ -25,7 +25,7 @@ Anyone who knows a room number can also review that game's moves, without taking
 | Select side | `/game/:id?side=0\|1` | Choose a free side of a game and join it |
 | Game | `/game/:id/side/:sideId` | Board, clocks and actions |
 | Promote pawn | `/game/:id/side/:sideId/promote-pawn` | Choose the piece for a promoted pawn |
-| End game | `/game/:id/side/:sideId/end-game` | Result of a finished game (with the details of an insufficient-material draw); new game, propose a reset, or open the review |
+| End game | `/game/:id/side/:sideId/end-game` | Result of a finished game (with the details of a material draw); new game, propose a reset, or open the review |
 | Answer proposal | `/game/:id/side/:sideId/answer-proposal/tie` or `/reset` | Accept or decline a draw or reset offer |
 | Game review | `/game/:id/review?side=0\|1` | Step through the moves of a game on the board. Open to anyone; not part of the game flow |
 
@@ -96,6 +96,7 @@ Clocks:
 
 - Show each side's remaining time as `HH:MM:SS`.
 - The side on turn counts down every second in the browser. When that side reaches zero, the game is reloaded so the server can end it.
+- The clocks stop when the game ends. A side that ran out shows `00:00:00`; a negative time from the API is never shown.
 - Clocks are not shown when the game has no time limit.
 
 Actions:
@@ -116,10 +117,10 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 ### 3.5 End game
 
 - Heading: the result of the game in the language in use (see section 6.2).
-- **Details of an insufficient-material draw.** The API ends a game as "Draw: insufficient material" in two cases: neither side has enough pieces left to checkmate, or the side on the move ran out of time. (The API gives a time out this result even when the other side could still checkmate.) For this result only, the screen shows, under the heading:
+- **Details of a material draw.** The API ends a game as "Draw: insufficient material" when neither side can checkmate, and as "Draw: time out and the other side cannot checkmate" when the side on the move runs out of time and the other side cannot checkmate. A time out that the other side can convert is a win for that side, so it shows no details. For these two results only, the screen shows, under the heading:
   - **The cause**: "Neither side has enough pieces left to checkmate." or "White ran out of time." (or Black).
   - **The pieces left**, one line per side: the side's name, whether those pieces can checkmate, and the pieces as pictures (King first, then Queen, Rook, Bishop, Knight, Pawn), named for screen readers.
-  - **How the cause is found.** The frontend repeats the API's material rule exactly as the API applies it, counting the king: one piece cannot checkmate; two pieces can when the second is a queen, a rook or a pawn; three pieces can only when the two besides the king are two bishops or a bishop and a knight (so the API treats, for example, king and two rooks as not enough); four pieces or more can. When neither side can, the cause is material. Otherwise the cause is time, and the side that ran out is the side on the move, the only side whose clock the API ends the game for. The clocks are not used, because the API keeps counting the time of the side on the move after the game ends. A game without a time limit cannot run out of time, so for it the cause is always material. The rule only explains the result; the API's result is always the one shown.
+  - **How the cause is found.** The frontend repeats the API's material rule, counting the king. A side cannot checkmate only with a bare king, king and bishop, king and knight, or king and two knights; with any other pieces it can (for example king and two rooks, or king, queen and knight). Insufficient material is a draw only when both sides cannot checkmate. The cause of a time-out draw is the side on the move, which is the side that ran out of time. The clocks are not read, because the API keeps the time of the side on the move after the game has ended. The rule only explains the result; the API's result is always the one shown.
 - **New game?** goes to Home.
 - **Propose reset** offers a reset to the opponent, shows the message, and returns to the game. The reset can be answered on the Answer proposal screen.
 - **Review game** opens Game review for this game, with the board turned to the player's side.
@@ -138,7 +139,7 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 Lets anyone who knows the room number see how a game went, step by step. It is opened from End game (**Review game**) or from Home (**Review a game**). The viewer takes no side and cannot change the game.
 
 - **Heading**: "Game review", then a line with the room and the result: "Room 7 · Black wins", or "Room 7 · Game in progress" for a game that has not finished. A game in progress shows the moves played up to the moment the screen opened; it does not follow new moves.
-- **Details of an insufficient-material draw**: the same as on End game (section 3.5).
+- **Details of a material draw**: the same as on End game (section 3.5).
 - **Board.** Shows the game's **final position** when the screen opens (the current one, for a game in progress), from White's side, or from Black's side when the link has `?side=1` (End game adds the player's side). The board cannot be clicked. The move behind the position is marked with the board colours of section 4: the square the piece left is yellow, the square it reached is green, or red when it captured a piece. Special moves are named in the square tooltip.
 - **Controls.** Four buttons go to the starting position, the previous move, the next move and the final position, and a text shows where the viewer is ("Move 12 of 40", or "Starting position"). A button that cannot go further is disabled. The keys Left, Right, Home and End do the same, except while a form control (such as the language list) has the focus.
 - **Move list.** A table with one row per move number: White's move and Black's answer. Each move is a button that shows the position after it; the move on the board is highlighted. A long list scrolls inside its own box. A move reads `Pawn E2 → E4`; a capture uses `×` (`Knight G1 × F3`); a promotion adds the chosen piece (`Pawn E7 → E8 = Queen`); castling and en passant are named (`King E1 → G1 (Short castling)`). Piece and move names are in the language in use.
@@ -156,8 +157,8 @@ The visual design is kept as it was. Changes to appearance need a deliberate dec
 - **Button variants.** Primary actions use light buttons with a white border. Offering a draw is red (`btn-danger`); offering a reset is dark (`btn-dark`).
 - **Pieces.** All twelve pieces come from one SVG set, `src/assets/pieces/standard.svg` (the Wikimedia "cburnett" set, CC BY-SA 3.0; its license text is in the file). White and black pieces share the same drawing, so they look alike, and the pictures are not font glyphs, so they look the same on every device. The API's Unicode symbols are not used.
 - **Board.** Square board with an 8 px rebeccapurple border, rounded corners. It is 656 px wide on large screens and shrinks to the screen width on phones (the 8 × 8 squares and the pictures scale with it). Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
-- **End game.** The heading, then, for an insufficient-material draw, a `lead` sentence with the cause and a dark list (`list-group`, one item per side, 656 px wide at most) where each item shows the side's name in bold, a pill badge (green "Can checkmate", grey "Cannot checkmate") and the pieces as 2 rem pictures. Below, the two buttons side by side in a `btn-group` (**New game?** light, **Propose reset** dark), and **Review game** (light) on its own line under them.
-- **Game review.** The review screen has an `h1` ("Game review"), a `lead` line with the room and the result, the material details of an insufficient-material draw (as on End game), the board (same look and colours as the game board, not clickable, highlighting the last move as origin yellow, destination green or red), a row of four outlined light buttons (« ‹ › ») in a Bootstrap `btn-group` with the position text under it, and the move list: a `table-dark` small table, 656 px wide at most and 18 rem tall at most (it scrolls), whose moves are small buttons (outlined light, filled light for the move on the board). The note for a game that cannot be replayed is a light alert. **New game?** (light) is at the bottom.
+- **End game.** The heading, then, for a material draw, a `lead` sentence with the cause and a dark list (`list-group`, one item per side, 656 px wide at most) where each item shows the side's name in bold, a pill badge (green "Can checkmate", grey "Cannot checkmate") and the pieces as 2 rem pictures. Below, the two buttons side by side in a `btn-group` (**New game?** light, **Propose reset** dark), and **Review game** (light) on its own line under them.
+- **Game review.** The review screen has an `h1` ("Game review"), a `lead` line with the room and the result, the material details of a material draw (as on End game), the board (same look and colours as the game board, not clickable, highlighting the last move as origin yellow, destination green or red), a row of four outlined light buttons (« ‹ › ») in a Bootstrap `btn-group` with the position text under it, and the move list: a `table-dark` small table, 656 px wide at most and 18 rem tall at most (it scrolls), whose moves are small buttons (outlined light, filled light for the move on the board). The note for a game that cannot be replayed is a light alert. **New game?** (light) is at the bottom.
 - **Spinner.** A light Bootstrap spinner in place of the content while loading.
 - **Clocks.** A list of two Bootstrap list items, centred, with a blue pill badge showing the time. 25 % wide on screens wider than 576 px, full width on phones.
 - **Actions.** Resign and Offer draw sit side by side on wider screens and stacked, full width, on phones.
@@ -182,7 +183,7 @@ The frontend's services, one file per area under `src/api/services/`:
 | Catalogue | `GET /tipos-de-peca/promocao-peao` | Promotion choices |
 | Games | `POST /jogos` | Create a game |
 | Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state |
-| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`), the side on the move and the turn time, for the game review |
+| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`) and the side on the move, for the game review |
 | Games | `GET /jogos/{id}/lado-sem-jogador` | Free sides |
 | Players | `POST /jogos/{id}/jogadores` | Join a side (`tipoId` 0, human) |
 | Players | `DELETE /jogos/{id}/jogadores/{ladoId}` | Resign |
@@ -233,11 +234,11 @@ The API uses Portuguese identifiers. The frontend keeps them on the wire and in 
 | Vitória: Preto | Black wins |
 | Empate: Regra 50 movimentos | Draw: 50-move rule |
 | Empate: Insuficiência material | Draw: insufficient material |
+| Empate: Tempo esgotado sem material | Draw: time out and the other side cannot checkmate |
 | Empate: Rei afogado | Draw: stalemate |
 | Empate: Comum acordo | Draw: by agreement |
 | Empate: Regra das 3 posições | Draw: threefold repetition |
 | Desistência: Um jogador deixou a partida | Resignation: a player left the game |
-| Tempo esgotado: o tempo de um jogador acabou | Time out: a player ran out of time |
 
 Move names are shown as "Short castling", "Long castling", "Pawn double step", "Pawn promotion", "En passant", "Knight move". Each language has its own names for these values.
 

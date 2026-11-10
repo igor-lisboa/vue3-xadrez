@@ -70,7 +70,7 @@ describe('useGameReplay', () => {
     finished.unmount()
   })
 
-  it('explains an insufficient-material draw from the final position and the side on move', async () => {
+  it('explains a time-out draw from the final position and the side on move', async () => {
     const kingsAndQueen = boardAfter({}).fill(null)
     kingsAndQueen[4] = 'Rei-1'
     kingsAndQueen[59] = 'Rainha-0'
@@ -81,9 +81,8 @@ describe('useGameReplay', () => {
         kingsAndQueen,
         {},
         {
-          finalizado: { tipo: 'Empate: Insuficiência material' },
+          finalizado: { tipo: 'Empate: Tempo esgotado sem material' },
           ladoIdAtual: 1,
-          tempoDeTurnoEmMilisegundos: 600_000,
         },
       ),
     )

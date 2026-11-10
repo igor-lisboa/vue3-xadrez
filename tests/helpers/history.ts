@@ -65,10 +65,7 @@ export function boardAfter(changes: Partial<Record<SquareName, SimplifiedCell | 
 }
 
 /** Game fields besides the moves and the board; by default a game in progress, White on the move. */
-type GameFields = Pick<
-  GameHistorySource,
-  'ladoIdAtual' | 'tempoDeTurnoEmMilisegundos' | 'finalizado'
->
+type GameFields = Pick<GameHistorySource, 'ladoIdAtual' | 'finalizado'>
 
 /**
  * A full game as the API sends it. Moves at even positions belong to White, odd to Black.
@@ -94,7 +91,6 @@ export function makeHistory(
     ladoPreto: { jogadasRealizadas: moves.filter((_, index) => index % 2 === 1) },
     tabuleiro: { casas: rows },
     ladoIdAtual: 0,
-    tempoDeTurnoEmMilisegundos: -1,
     finalizado: null,
     ...game,
   }

@@ -49,5 +49,5 @@ export type EndingLabel =
   | 'Empate: Rei afogado'
   | 'Empate: Comum acordo'
   | 'Empate: Regra das 3 posições'
+  | 'Empate: Tempo esgotado sem material'
   | 'Desistência: Um jogador deixou a partida'
-  | 'Tempo esgotado: o tempo de um jogador acabou'

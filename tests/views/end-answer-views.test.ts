@@ -135,12 +135,11 @@ describe('EndGameView', () => {
     expect(sides[1]!.find('.badge').text()).toBe('Cannot checkmate')
   })
 
-  it('says which side ran out of time when the other could still checkmate', async () => {
+  it('says which side ran out of time in a time-out draw', async () => {
     vi.mocked(getGameSummary).mockResolvedValue(
       makeSummary({
-        finalizado: 'Empate: Insuficiência material',
+        finalizado: 'Empate: Tempo esgotado sem material',
         ladoIdAtual: 1,
-        tempoDeTurnoEmMilisegundos: 300_000,
         tabuleiro: boardWith({ 4: 'Rei-1', 60: 'Rei-0', 56: 'Torre-0' }),
       }),
     )
@@ -152,6 +151,24 @@ describe('EndGameView', () => {
       'Can checkmate',
       'Cannot checkmate',
     ])
+  })
+
+  it('names the time-out draw in the heading', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({ finalizado: 'Empate: Tempo esgotado sem material' }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe('Draw: time out and the other side cannot checkmate')
+  })
+
+  it('shows the ending as the API sent it when the frontend does not know it', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({ finalizado: 'Empate: Algo novo' as never }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe('Empate: Algo novo')
   })
 
   it('proposes a reset and returns to the game', async () => {

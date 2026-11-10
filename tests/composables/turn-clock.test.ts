@@ -69,6 +69,28 @@ describe('useTurnClock', () => {
     unmount()
   })
 
+  it('does not count after the game has ended', () => {
+    const { result, unmount } = setup(
+      makeSummary({
+        ladoIdAtual: 0,
+        tempoDeTurnoEmMilisegundos: 60000,
+        ladoBrancoTempoMilisegundosRestante: 5000,
+        finalizado: 'Vitória: Preto',
+      }),
+    )
+    vi.advanceTimersByTime(3000)
+    expect(result.whiteMs.value).toBe(5000)
+    unmount()
+  })
+
+  it('shows zero, never a negative time, for a side the server reports below zero', () => {
+    const { result, unmount } = setup(
+      makeSummary({ tempoDeTurnoEmMilisegundos: 60000, ladoBrancoTempoMilisegundosRestante: -250 }),
+    )
+    expect(result.whiteMs.value).toBe(0)
+    unmount()
+  })
+
   it('does not count when the game has no time limit', () => {
     const { result, unmount } = setup(
       makeSummary({ tempoDeTurnoEmMilisegundos: -1, ladoBrancoTempoMilisegundosRestante: 5000 }),

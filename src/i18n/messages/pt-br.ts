@@ -104,8 +104,8 @@ export const ptBR: Messages = {
       'Empate: Comum acordo': 'Empate por acordo mútuo',
       'Empate: Regra das 3 posições': 'Empate: repetição de posições',
       'Desistência: Um jogador deixou a partida': 'Desistência: um jogador deixou a partida',
-      'Tempo esgotado: o tempo de um jogador acabou':
-        'Tempo esgotado: o tempo de um jogador acabou',
+      'Empate: Tempo esgotado sem material':
+        'Empate: tempo esgotado e o adversário não pode dar xeque-mate',
     },
     moves: {
       'Roque Menor': 'Roque curto',

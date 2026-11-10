@@ -104,8 +104,8 @@ export const it: Messages = {
       'Empate: Comum acordo': 'Patta per accordo',
       'Empate: Regra das 3 posições': 'Patta: triplice ripetizione',
       'Desistência: Um jogador deixou a partida': 'Abbandono: un giocatore ha lasciato la partita',
-      'Tempo esgotado: o tempo de um jogador acabou':
-        'Tempo scaduto: il tempo di un giocatore è finito',
+      'Empate: Tempo esgotado sem material':
+        'Patta: tempo scaduto e l’avversario non può dare scacco matto',
     },
     moves: {
       'Roque Menor': 'Arrocco corto',

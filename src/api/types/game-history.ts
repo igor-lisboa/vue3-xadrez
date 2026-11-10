@@ -35,8 +35,6 @@ export interface GameHistorySource {
   ladoPreto: PlayedSide
   tabuleiro: { casas: (PlayedPiece | null)[][] }
   ladoIdAtual: SideId
-  /** Turn time limit in milliseconds, -1 when the game has no limit. */
-  tempoDeTurnoEmMilisegundos: number
   /** How the game ended, or null while it is still being played. */
   finalizado: { tipo: EndingLabel } | null
 }

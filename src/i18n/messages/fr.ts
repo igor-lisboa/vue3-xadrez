@@ -104,8 +104,8 @@ export const fr: Messages = {
       'Empate: Comum acordo': 'Nulle par accord mutuel',
       'Empate: Regra das 3 posições': 'Nulle : répétition de position',
       'Desistência: Um jogador deixou a partida': 'Abandon : un joueur a quitté la partie',
-      'Tempo esgotado: o tempo de um jogador acabou':
-        'Temps écoulé : le temps d’un joueur est épuisé',
+      'Empate: Tempo esgotado sem material':
+        'Nulle : temps écoulé et l’adversaire ne peut pas mater',
     },
     moves: {
       'Roque Menor': 'Petit roque',

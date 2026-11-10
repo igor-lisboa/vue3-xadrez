@@ -104,8 +104,8 @@ export const de: Messages = {
       'Empate: Comum acordo': 'Remis durch Einigung',
       'Empate: Regra das 3 posições': 'Remis: dreifache Stellungswiederholung',
       'Desistência: Um jogador deixou a partida': 'Aufgabe: ein Spieler hat das Spiel verlassen',
-      'Tempo esgotado: o tempo de um jogador acabou':
-        'Zeit abgelaufen: die Zeit eines Spielers ist um',
+      'Empate: Tempo esgotado sem material':
+        'Remis: Zeit abgelaufen und der Gegner kann nicht mattsetzen',
     },
     moves: {
       'Roque Menor': 'Kurze Rochade',

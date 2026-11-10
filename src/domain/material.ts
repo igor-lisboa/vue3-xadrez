@@ -1,9 +1,11 @@
 import type { EndingLabel, PieceName, SideId, SimplifiedCell } from '@/api/types/enums'
-import { BLACK, NO_TIME_LIMIT, WHITE } from './constants'
+import { BLACK, WHITE } from './constants'
 import { pieceNameOf, sideOf } from './replay'
 
-/** The only result the material details explain. */
-const INSUFFICIENT_MATERIAL_ENDING: EndingLabel = 'Empate: Insuficiência material'
+/** Draw because neither side can checkmate. */
+const MATERIAL_DRAW: EndingLabel = 'Empate: Insuficiência material'
+/** Draw because the side on the move ran out of time and the other side cannot checkmate. */
+const TIME_OUT_DRAW: EndingLabel = 'Empate: Tempo esgotado sem material'
 
 /** Order of the pieces in a side's list: the king first, the pawns last. */
 const PIECE_ORDER: readonly PieceName[] = ['Rei', 'Rainha', 'Torre', 'Bispo', 'Cavalo', 'Peão']
@@ -14,11 +16,11 @@ interface SideMaterial {
   canCheckmate: boolean
 }
 
-/** Why the API called an insufficient-material draw. */
-type InsufficientMaterialCause = { kind: 'material' } | { kind: 'timeOut'; sideId: SideId }
+/** Why the game was drawn: neither side can mate, or the side on the move ran out of time. */
+type MaterialDrawCause = { kind: 'material' } | { kind: 'timeOut'; sideId: SideId }
 
 export interface MaterialReport {
-  cause: InsufficientMaterialCause
+  cause: MaterialDrawCause
   /** White first, then Black. */
   sides: [SideMaterial, SideMaterial]
 }
@@ -28,8 +30,8 @@ interface MaterialSource {
   ending: EndingLabel | null
   /** The final board, in any order. */
   cells: readonly (SimplifiedCell | null)[]
+  /** The side that was on the move when the game ended. */
   sideOnMove: SideId
-  timeLimitMs: number
 }
 
 /** The pieces a side has on the board, the king first. */
@@ -41,13 +43,11 @@ export function piecesLeft(cells: readonly (SimplifiedCell | null)[], sideId: Si
 }
 
 /**
- * Whether these pieces can still give checkmate. Repeats the API's rule as it is, including
- * its gaps (three pieces count only as two bishops or a bishop and a knight)
- * (`hasMinimumMaterial` in the backend's `src/domain/rules/material.ts`) so the screen can
- * explain a result; it never decides one.
+ * Whether these pieces (the king included) can give checkmate. This copies the backend's rule
+ * so the screen can explain a draw; it never decides a result. Only a bare king, king and bishop,
+ * king and knight, and king and two knights cannot mate. Same-colour bishops are not detected.
  */
 export function canCheckmate(pieces: readonly PieceName[]): boolean {
-  const count = (name: PieceName) => pieces.filter((piece) => piece === name).length
   if (pieces.length < 2) {
     return false
   }
@@ -55,31 +55,29 @@ export function canCheckmate(pieces: readonly PieceName[]): boolean {
     return pieces.some((piece) => piece === 'Rainha' || piece === 'Torre' || piece === 'Peão')
   }
   if (pieces.length === 3) {
-    const bishops = count('Bispo')
-    return bishops === 2 || (bishops > 0 && count('Cavalo') > 0)
+    return pieces.filter((piece) => piece === 'Cavalo').length !== 2
   }
   return true
 }
 
 /**
- * Explains an insufficient-material draw, or returns null for any other result.
- * The API also gives this result when the side on the move runs out of time, so when one side
- * could still checkmate, the draw came from the clock. The clocks themselves are not read: the
- * API keeps counting the time of the side on the move after the game has ended.
+ * Explains a draw that depends on material, or returns null for any other result.
+ * "Insufficient material" means both sides cannot mate. The time-out draw is the side on the
+ * move running out of time while the other side cannot mate. The clocks are not read: the API
+ * keeps counting the time of the side on the move after the game has ended.
  */
-export function explainInsufficientMaterial(source: MaterialSource): MaterialReport | null {
-  if (source.ending !== INSUFFICIENT_MATERIAL_ENDING) {
+export function explainMaterialDraw(source: MaterialSource): MaterialReport | null {
+  let cause: MaterialDrawCause
+  if (source.ending === MATERIAL_DRAW) {
+    cause = { kind: 'material' }
+  } else if (source.ending === TIME_OUT_DRAW) {
+    cause = { kind: 'timeOut', sideId: source.sideOnMove }
+  } else {
     return null
   }
   const sideMaterial = (sideId: SideId): SideMaterial => {
     const pieces = piecesLeft(source.cells, sideId)
     return { sideId, pieces, canCheckmate: canCheckmate(pieces) }
   }
-  const sides: [SideMaterial, SideMaterial] = [sideMaterial(WHITE), sideMaterial(BLACK)]
-  const anySideCanCheckmate = sides.some((side) => side.canCheckmate)
-  const cause: InsufficientMaterialCause =
-    anySideCanCheckmate && source.timeLimitMs !== NO_TIME_LIMIT
-      ? { kind: 'timeOut', sideId: source.sideOnMove }
-      : { kind: 'material' }
-  return { cause, sides }
+  return { cause, sides: [sideMaterial(WHITE), sideMaterial(BLACK)] }
 }
