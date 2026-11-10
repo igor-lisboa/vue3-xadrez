@@ -5,3 +5,6 @@ dist-ssr
 coverage
 *.local
 .env
+
+# TypeScript incremental build info (written by vue-tsc)
+*.tsbuildinfo
