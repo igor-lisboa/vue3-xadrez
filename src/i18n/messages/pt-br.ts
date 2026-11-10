@@ -52,6 +52,19 @@ export const ptBR: Messages = {
   },
   endGame: {
     proposeReset: 'Propor reinício',
+    review: {
+      title: 'Revisão da partida',
+      moveList: 'Jogadas da partida',
+      first: 'Posição inicial',
+      previous: 'Jogada anterior',
+      next: 'Próxima jogada',
+      last: 'Posição final',
+      position: (step, total) => `Jogada ${step} de ${total}`,
+      startPosition: 'Posição inicial',
+      noMoves: 'Nenhuma jogada foi feita nesta partida.',
+      unavailable:
+        'Não foi possível reproduzir as jogadas desta partida, então o tabuleiro mostra apenas a posição final.',
+    },
   },
   game: {
     resign: 'Desistir',

@@ -23,7 +23,7 @@ The frontend holds no game rules of its own. The API decides what is legal and w
 | Select side | `/game/:id?side=0\|1` | Choose a free side of a game and join it |
 | Game | `/game/:id/side/:sideId` | Board, clocks and actions |
 | Promote pawn | `/game/:id/side/:sideId/promote-pawn` | Choose the piece for a promoted pawn |
-| End game | `/game/:id/side/:sideId/end-game` | Result of a finished game; propose a reset |
+| End game | `/game/:id/side/:sideId/end-game` | Result of a finished game, review of its moves on the board; propose a reset |
 | Answer proposal | `/game/:id/side/:sideId/answer-proposal/tie` or `/reset` | Accept or decline a draw or reset offer |
 
 Any other path goes to Home.
@@ -34,11 +34,13 @@ Invalid route params (a game id that is not a non-negative integer, a side that 
 
 The screen a player is on is decided by the game state, not chosen by the player. After each load of the game, the frontend resolves the screen with these rules, first match wins:
 
-1. A draw offer waits for this player's answer → **Answer proposal (tie)**.
-2. A reset offer waits for an answer → **Answer proposal (reset)**. The receiving side answers; the other side sees a waiting message on the same screen.
+1. A draw offer waits for an answer → **Answer proposal (tie)**.
+2. A reset offer waits for an answer → **Answer proposal (reset)**.
+
+   Both sides go to the same screen for rules 1 and 2: the side that received the offer answers, and the side that made it sees a waiting message.
 3. This side must promote a pawn → **Promote pawn**.
 4. This side has no player (it was left empty) → **Select side**, with that side preselected.
-5. The game has finished → **End game**.
+5. The game has finished → **End game** (result and game review).
 6. Otherwise → **Game**.
 
 When the resolved screen differs from the current one, the frontend navigates. When it is the same, it stays. A player can therefore be moved between screens by the other player's actions, through the socket events below.
@@ -54,7 +56,7 @@ Texts quoted in this section are the English versions. Each language shows its o
 - Clicking a game type creates a game with that type and the selected turn time:
   - AI X AI: opens the game directly, as side 0 (White).
   - Any other type: opens Select side for the new game.
-- "Enter a room": asks for a game id in a browser prompt. An empty answer or Cancel does nothing. A non-empty answer opens Select side for that id.
+- "Enter a room": asks for a game id in a browser prompt. An empty answer or Cancel does nothing. A non-empty answer opens Select side for that id; an id that is not a non-negative integer sends the player back to Home (section 2).
 - While the types load, or a game is being created, a spinner replaces the content.
 - A failed creation shows the error message and stays on Home.
 
@@ -109,7 +111,13 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 
 ### 3.5 End game
 
-- Heading: the result of the game in English (see section 6.2).
+- Heading: the result of the game in the language in use (see section 6.2).
+- **Game review**, below the heading. It lets the player see how the game ended and learn from it. It is the same for a win, a draw, a resignation and a time out.
+  - **Board.** Shows the game's **final position** when the screen opens, from the player's side (Black sees it reversed). The board cannot be clicked. The move behind the position is marked with the board colours of section 4: the square the piece left is yellow, the square it reached is green, or red when it captured a piece. Special moves are named in the square tooltip.
+  - **Controls.** Four buttons go to the starting position, the previous move, the next move and the final position, and a text shows where the player is ("Move 12 of 40", or "Starting position"). A button that cannot go further is disabled. The keys Left, Right, Home and End do the same, except while a form control (such as the language list) has the focus.
+  - **Move list.** A table with one row per move number: White's move and Black's answer. Each move is a button that shows the position after it; the move on the board is highlighted. A long list scrolls inside its own box. A move reads `Pawn E2 → E4`; a capture uses `×` (`Knight G1 × F3`); a promotion adds the chosen piece (`Pawn E7 → E8 = Queen`); castling and en passant are named (`King E1 → G1 (Short castling)`). Piece and move names are in the language in use.
+  - **Where the positions come from.** The API keeps no earlier positions, so the frontend rebuilds them: it starts from the standard position and plays the moves of both sides in the order of the API's turn count (the rook of a castling, the pawn taken en passant and the piece chosen in a promotion included; the API does not name the chosen piece in the move, so it is read from the piece that keeps the promotion among its moves). The result is used only if it ends on the board the API reports.
+  - **When it cannot be replayed** (for example a game that did not start from the standard position, or a game that could not be loaded), the board shows the final position only, with the note "The moves of this game cannot be replayed, so the board shows the final position only." A game with no moves says "No moves were played in this game."
 - **New game?** goes to Home.
 - **Propose reset** offers a reset to the opponent, shows the message, and returns to the game. The reset can be answered on the Answer proposal screen.
 - The screen returns to the game when the opponent proposes a draw or reset, or answers one.
@@ -131,6 +139,7 @@ The visual design is kept as it was. Changes to appearance need a deliberate dec
 - **Button variants.** Primary actions use light buttons with a white border. Offering a draw is red (`btn-danger`); offering a reset is dark (`btn-dark`).
 - **Pieces.** All twelve pieces come from one SVG set, `src/assets/pieces/standard.svg` (the Wikimedia "cburnett" set, CC BY-SA 3.0; its license text is in the file). White and black pieces share the same drawing, so they look alike, and the pictures are not font glyphs, so they look the same on every device. The API's Unicode symbols are not used.
 - **Board.** Square board with an 8 px rebeccapurple border, rounded corners. It is 656 px wide on large screens and shrinks to the screen width on phones (the 8 × 8 squares and the pictures scale with it). Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
+- **Game review.** The end game screen has an `h2` ("Game review"), the board (same look and colours as the game board, not clickable, highlighting the last move as origin yellow, destination green or red), a row of four outlined light buttons (« ‹ › ») in a Bootstrap `btn-group` with the position text under it, and the move list: a `table-dark` small table, 656 px wide at most and 18 rem tall at most (it scrolls), whose moves are small buttons (outlined light, filled light for the move on the board). The note for a game that cannot be replayed is a light alert.
 - **Spinner.** A light Bootstrap spinner in place of the content while loading.
 - **Clocks.** A list of two Bootstrap list items, centred, with a blue pill badge showing the time. 25 % wide on screens wider than 576 px, full width on phones.
 - **Actions.** Resign and Offer draw sit side by side on wider screens and stacked, full width, on phones.
@@ -155,6 +164,7 @@ The frontend's services, one file per area under `src/api/services/`:
 | Catalogue | `GET /tipos-de-peca/promocao-peao` | Promotion choices |
 | Games | `POST /jogos` | Create a game |
 | Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state |
+| Games | `GET /jogos/{id}` | Moves of both sides and the final board, for the game review |
 | Games | `GET /jogos/{id}/lado-sem-jogador` | Free sides |
 | Players | `POST /jogos/{id}/jogadores` | Join a side (`tipoId` 0, human) |
 | Players | `DELETE /jogos/{id}/jogadores/{ladoId}` | Resign |
@@ -225,8 +235,10 @@ The socket connects to the API base URL with the query `jogador = "{gameId}-{sid
 | --- | --- | --- |
 | `adversarioEntrou` | Game | Notify the player, reload |
 | `jogadaRealizada` | Game | Reload |
-| `empateProposto`, `empatePropostoResposta` | Game, Answer proposal | Reload (Game); Answer proposal reloads; End game returns to Game |
-| `resetProposto`, `resetPropostoResposta` | Game, Answer proposal | Same as draw events |
+| `empateProposto` | Game, End game | Reload (Game); End game returns to Game |
+| `empatePropostoResposta` | Game, Answer proposal, End game | Reload (Game, Answer proposal); End game returns to Game |
+| `resetProposto` | Game, End game | Same as `empateProposto` |
+| `resetPropostoResposta` | Game, Answer proposal, End game | Same as `empatePropostoResposta` |
 | `jogoFinalizado` | Game | Reload |
 | `uncaughtException` | All game screens | Notify "Connection error with the server." |
 

@@ -48,6 +48,12 @@ describe('message files', () => {
     expect(MESSAGES[locale].selectSide.title(7)).toContain('7')
   })
 
+  it.each(LOCALES)('%s builds the position of a review step from both numbers', (locale) => {
+    const text = MESSAGES[locale].endGame.review.position(12, 40)
+    expect(text).toContain('12')
+    expect(text).toContain('40')
+  })
+
   it('builds the English title of a game', () => {
     expect(MESSAGES.en.selectSide.title(7)).toBe('Choose an available side to play game 7')
   })

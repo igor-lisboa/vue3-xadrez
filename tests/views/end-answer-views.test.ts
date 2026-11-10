@@ -6,7 +6,12 @@ import {
   listPromotionPieces,
   listSquares,
 } from '@/api/services/catalogue'
-import { createGame, getGameSummary, listSidesWithoutPlayer } from '@/api/services/games'
+import {
+  createGame,
+  getGameHistory,
+  getGameSummary,
+  listSidesWithoutPlayer,
+} from '@/api/services/games'
 import { joinGame, leaveGame } from '@/api/services/players'
 import { promotePawn } from '@/api/services/moves'
 import { answerProposal, proposeToOpponent } from '@/api/services/proposals'
@@ -19,6 +24,8 @@ import PromotePawnView from '@/views/PromotePawnView.vue'
 import EndGameView from '@/views/EndGameView.vue'
 import AnswerProposalView from '@/views/AnswerProposalView.vue'
 import { makeSummary, gameTypes, pieceTypes, squares } from '../helpers/fixtures'
+import { makeHistory } from '../helpers/history'
+import { startingPosition } from '@/domain/replay'
 
 const { push, routeState } = vi.hoisted(() => ({
   push: vi.fn(async () => undefined),
@@ -38,6 +45,7 @@ vi.mock('@/api/services/catalogue', () => ({
 }))
 vi.mock('@/api/services/games', () => ({
   createGame: vi.fn(),
+  getGameHistory: vi.fn(),
   getGameSummary: vi.fn(),
   listSidesWithoutPlayer: vi.fn(),
 }))
@@ -70,6 +78,7 @@ beforeEach(() => {
   vi.mocked(listPromotionPieces).mockResolvedValue(pieceTypes.slice(1, 5))
   vi.mocked(getGameSummary).mockResolvedValue(makeSummary())
   vi.mocked(triggerAi).mockResolvedValue(undefined)
+  vi.mocked(getGameHistory).mockResolvedValue(makeHistory([], startingPosition()))
 })
 
 describe('EndGameView', () => {
@@ -84,7 +93,7 @@ describe('EndGameView', () => {
     vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ finalizado: 'Empate: Rei afogado' }))
     const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
     await settle()
-    await wrapper.findAll('button')[0]!.trigger('click')
+    await wrapper.findAll('.end-game-actions button')[0]!.trigger('click')
     expect(push).toHaveBeenCalledWith({ name: 'home' })
   })
 
@@ -93,7 +102,7 @@ describe('EndGameView', () => {
     vi.mocked(proposeToOpponent).mockResolvedValue('Offered reset')
     const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
     await settle()
-    await wrapper.findAll('button')[1]!.trigger('click')
+    await wrapper.findAll('.end-game-actions button')[1]!.trigger('click')
     await settle()
     expect(proposeToOpponent).toHaveBeenCalledWith(7, 0, 'reset')
     expect(push).toHaveBeenCalledWith({ name: 'game', params: { id: 7, sideId: 0 } })

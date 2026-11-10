@@ -52,6 +52,19 @@ export const en: Messages = {
   },
   endGame: {
     proposeReset: 'Propose reset',
+    review: {
+      title: 'Game review',
+      moveList: 'Moves of the game',
+      first: 'Starting position',
+      previous: 'Previous move',
+      next: 'Next move',
+      last: 'Final position',
+      position: (step, total) => `Move ${step} of ${total}`,
+      startPosition: 'Starting position',
+      noMoves: 'No moves were played in this game.',
+      unavailable:
+        'The moves of this game cannot be replayed, so the board shows the final position only.',
+    },
   },
   game: {
     resign: 'Resign',

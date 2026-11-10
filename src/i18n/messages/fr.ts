@@ -52,6 +52,19 @@ export const fr: Messages = {
   },
   endGame: {
     proposeReset: 'Proposer une réinitialisation',
+    review: {
+      title: 'Revue de la partie',
+      moveList: 'Coups de la partie',
+      first: 'Position de départ',
+      previous: 'Coup précédent',
+      next: 'Coup suivant',
+      last: 'Position finale',
+      position: (step, total) => `Coup ${step} sur ${total}`,
+      startPosition: 'Position de départ',
+      noMoves: 'Aucun coup n’a été joué dans cette partie.',
+      unavailable:
+        'Les coups de cette partie ne peuvent pas être rejoués : l’échiquier montre seulement la position finale.',
+    },
   },
   game: {
     resign: 'Abandonner',

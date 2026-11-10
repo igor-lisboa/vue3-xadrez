@@ -52,6 +52,19 @@ export const de: Messages = {
   },
   endGame: {
     proposeReset: 'Zurücksetzen vorschlagen',
+    review: {
+      title: 'Partieanalyse',
+      moveList: 'Züge der Partie',
+      first: 'Ausgangsstellung',
+      previous: 'Voriger Zug',
+      next: 'Nächster Zug',
+      last: 'Endstellung',
+      position: (step, total) => `Zug ${step} von ${total}`,
+      startPosition: 'Ausgangsstellung',
+      noMoves: 'In dieser Partie wurde kein Zug gespielt.',
+      unavailable:
+        'Die Züge dieser Partie lassen sich nicht nachspielen, daher zeigt das Brett nur die Endstellung.',
+    },
   },
   game: {
     resign: 'Aufgeben',

@@ -6,7 +6,12 @@ import {
   listPromotionPieces,
   listSquares,
 } from '@/api/services/catalogue'
-import { createGame, getGameSummary, listSidesWithoutPlayer } from '@/api/services/games'
+import {
+  createGame,
+  getGameHistory,
+  getGameSummary,
+  listSidesWithoutPlayer,
+} from '@/api/services/games'
 import { joinGame, leaveGame } from '@/api/services/players'
 import { listPossibleMoves, makeMove, promotePawn } from '@/api/services/moves'
 import { answerProposal, proposeToOpponent } from '@/api/services/proposals'
@@ -52,6 +57,12 @@ describe('game services', () => {
     expect(http.get).toHaveBeenCalledWith('/jogos/4/simples', {
       params: { tabuleiroSuperSimplificado: true },
     })
+  })
+
+  it('reads the full game, with the moves of both sides, for the review', async () => {
+    vi.mocked(http.get).mockResolvedValue(envelope({ id: 4, ladoBranco: {} }))
+    await expect(getGameHistory(4)).resolves.toEqual({ id: 4, ladoBranco: {} })
+    expect(http.get).toHaveBeenCalledWith('/jogos/4')
   })
 
   it('lists the sides without a player', async () => {

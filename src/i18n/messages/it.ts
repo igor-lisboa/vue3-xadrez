@@ -52,6 +52,19 @@ export const it: Messages = {
   },
   endGame: {
     proposeReset: 'Proponi reset',
+    review: {
+      title: 'Revisione della partita',
+      moveList: 'Mosse della partita',
+      first: 'Posizione iniziale',
+      previous: 'Mossa precedente',
+      next: 'Mossa successiva',
+      last: 'Posizione finale',
+      position: (step, total) => `Mossa ${step} di ${total}`,
+      startPosition: 'Posizione iniziale',
+      noMoves: 'In questa partita non è stata giocata nessuna mossa.',
+      unavailable:
+        'Le mosse di questa partita non si possono riprodurre, quindi la scacchiera mostra solo la posizione finale.',
+    },
   },
   game: {
     resign: 'Abbandona',

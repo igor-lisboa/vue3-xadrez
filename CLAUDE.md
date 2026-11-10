@@ -27,7 +27,7 @@ Node 20.19+ or 22.12+ is required.
 - Source files stay **under 300 lines**. Split a file before it grows past that.
 - Dependencies point inward:
   - `views/` → `composables/`, `components/`, `api/services/`, `domain/`
-  - `composables/` → `api/services/`, `domain/`, `services/`, `router/`
+  - `composables/` → `api/services/`, `domain/`, `services/`, `router/`, `i18n/`, `config/`
   - `components/` → `domain/` (presentational; no HTTP, no router)
   - `domain/` → nothing app-specific except `api/types` (pure, no Vue, no HTTP)
 - `api/services/*` is one file per API area. It wraps `http` and returns typed data. It never touches the DOM or the router.
@@ -51,7 +51,7 @@ Node 20.19+ or 22.12+ is required.
 
 ## Testing
 
-- Every change ships with tests. Tests mirror `src/`: `tests/domain`, `tests/api`, `tests/composables`, `tests/components`, `tests/views`, `tests/router`, `tests/services`.
+- Every change ships with tests. Tests mirror `src/`: `tests/domain`, `tests/api`, `tests/composables`, `tests/components`, `tests/views`, `tests/router`, `tests/services`, `tests/i18n`. `tests/tooling` checks the skill and agent files.
 - Domain functions are tested as pure functions. Services are tested with `http` mocked. Composables and views are tested with services and `vue-router` mocked (see `tests/views/*.test.ts` for the pattern) and with `runComposable` (`tests/helpers/run-composable.ts`) when lifecycle hooks are needed.
 - Watchers flush asynchronously: `await nextTick()` before asserting on state that a watcher updates.
 - Use fake timers for the clock (`vi.useFakeTimers()`).
@@ -62,6 +62,7 @@ Node 20.19+ or 22.12+ is required.
 
 - **Screen rules** are decided by `resolveGameScreen` (`src/domain/game-screen.ts`). The priority order is documented there and tested. Change the order only with a spec update.
 - **Board** is built from the summary in `createBoardHouses`. The board is oriented for Black by reversing both the squares and the cells (`orientForSide`).
+- **Game review** is on the End game screen. `useGameReplay` loads `GET /jogos/{id}` and `buildReplay` (`src/domain/replay.ts`) rebuilds every position from the move lists, because the API keeps no snapshots. A replay that does not end on the API's final board is discarded and only the final position is shown. Shared fixtures for it are in `tests/helpers/history.ts`.
 - **Board selection** is in `useChessBoard`: first click selects and fetches moves, a click on a highlighted square plays the move, then the game is reloaded.
 - **Clock** runs in the browser in `useTurnClock`; the server stays the source of truth. When a side reaches zero, the game is reloaded.
 - **Socket** (`useGameSocket`) maps game events to handlers by semantic name. The wire names are in `src/api/socket-events.ts`.
@@ -78,4 +79,4 @@ Node 20.19+ or 22.12+ is required.
 
 - Work on a branch. The default branch is `main`. Do not commit or push unless the user asks.
 - For new features, update `docs/specs/frontend.md` first, then code, then tests.
-- Use the skills in `.claude/skills/` for the common recipes and the agents in `.claude/agents/` for review.
+- Use the skills (common recipes) and the agents (review, tests) of the project. They are shared by Claude Code, Codex and Copilot: edit only the canonical files in `.agents/skills/` and `.agents/agents/`, then run `npm run sync:agents` to regenerate `.claude/`, `.github/agents/` and `.codex/agents/` (`npm run check:agents` verifies them; see the `manage-agent-files` skill).

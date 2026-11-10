@@ -54,6 +54,19 @@ export interface Messages {
   }
   endGame: {
     proposeReset: string
+    /** Review of the finished game: the board and the list of moves. */
+    review: {
+      title: string
+      moveList: string
+      first: string
+      previous: string
+      next: string
+      last: string
+      position: (step: number, total: number) => string
+      startPosition: string
+      noMoves: string
+      unavailable: string
+    }
   }
   game: {
     resign: string

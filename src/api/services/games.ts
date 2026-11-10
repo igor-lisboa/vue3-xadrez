@@ -1,5 +1,6 @@
 import type { ApiEnvelope } from '../types/envelope'
 import type { CreatedGame, CreateGameRequest, SideSlot } from '../types/game'
+import type { GameHistorySource } from '../types/game-history'
 import type { GameSummary } from '../types/game-summary'
 import { http } from '../http'
 
@@ -12,6 +13,12 @@ export async function getGameSummary(gameId: number): Promise<GameSummary> {
   const { data } = await http.get<ApiEnvelope<GameSummary>>(`/jogos/${gameId}/simples`, {
     params: { tabuleiroSuperSimplificado: true },
   })
+  return data.data
+}
+
+/** Full state of a game, with the moves of both sides. Used to review a finished game. */
+export async function getGameHistory(gameId: number): Promise<GameHistorySource> {
+  const { data } = await http.get<ApiEnvelope<GameHistorySource>>(`/jogos/${gameId}`)
   return data.data
 }
 

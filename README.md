@@ -7,12 +7,15 @@ Built with Vue 3, TypeScript, Vite, Bootstrap 5 and socket.io for live updates.
 ## Features
 
 - Create a human vs human, human vs AI, or AI vs AI game
-- Choose a turn time limit (none, 5, 10, 15 minutes, or 1 hour)
+- Choose a turn time limit (5, 10 or 15 minutes)
 - Join an existing game by its id, on a free side
 - Play with click-to-move: select a piece to see its legal moves, click a highlighted square to move
 - Pawn promotion, draw offers and reset offers, with accept or decline
 - Live updates over socket.io, and a countdown clock when the game has a time limit
 - Resign a game
+- Review a finished game: the final board, every move in a list, and buttons (or the arrow keys) to step through the positions and see how the game ended
+- Six languages (English, Portuguese from Brazil and from Portugal, French, Italian, German), chosen in the header
+- Works on phones, and can be installed on the home screen as a web app (PWA)
 
 The full behaviour, screens and API contract are described in [docs/specs/frontend.md](docs/specs/frontend.md).
 
@@ -55,6 +58,8 @@ The API must be reachable from the browser. The Vercel deployment used by defaul
 | `npm run test:coverage` | Runs the tests and reports coverage (thresholds enforced) |
 | `npm run check` | Type-check, tests with coverage, and build. Run this before opening a pull request |
 | `npm run format` | Formats the source and test files with Prettier |
+| `npm run sync:agents` | Regenerates the skill and agent files of Claude Code, Codex and Copilot from `.agents/` |
+| `npm run check:agents` | Fails when those generated files differ from `.agents/` |
 
 ## Project structure
 
@@ -64,23 +69,26 @@ src/
   components/   Reusable presentational components (common/, game/, layout/)
   composables/  Stateful logic shared by views (requests, game state, socket, clock, board)
   config/       Typed environment variables
-  domain/       Pure chess-app rules and helpers, with no Vue or HTTP code
+  domain/       Pure chess-app rules and helpers (board, replay of a finished game, screen rules), with no Vue or HTTP code
+  i18n/         Texts of the six languages (one file each) and the language list
   router/       Routes, route params, guards and screen navigation
-  services/     Browser dialogs wrapper
+  services/     Browser dialogs, chosen language, service worker registration
   views/        One view per screen
-tests/          Mirrors src/ (domain, api, composables, components, views, router)
+public/         Web app manifest, service worker and icons
+tests/          Mirrors src/ (domain, api, composables, components, views, router, services, i18n), plus helpers/ and tooling/
 docs/specs/     Functional specification of the frontend
+.agents/        Skills and agents shared by Claude Code, Codex and Copilot (the other tools' files are generated from it)
 ```
 
 Dependencies point inward: views use composables and components, composables use services and the domain, and the domain depends on nothing else in the app.
 
 ## Testing
 
-Tests use [Vitest](https://vitest.dev) with jsdom and [Vue Test Utils](https://test-utils.vuejs.org). The domain layer is tested as pure functions; services are tested against a mocked HTTP client; composables and views are tested with mocked services and a mocked router. Coverage thresholds are set in `vite.config.ts`.
+Tests use [Vitest](https://vitest.dev) with jsdom and [Vue Test Utils](https://test-utils.vuejs.org). The domain layer is tested as pure functions; services are tested against a mocked HTTP client; composables and views are tested with mocked services and a mocked router. Coverage thresholds are set in `vite.config.ts`. `tests/tooling` also checks that the generated skill and agent files match `.agents/`.
 
 ## Contributing
 
-See [CLAUDE.md](CLAUDE.md) for the conventions, and the skills in `.claude/skills/` for step-by-step recipes (adding a screen, adding an API call, reviewing an API change).
+See [CLAUDE.md](CLAUDE.md) for the conventions ([AGENTS.md](AGENTS.md) is the short version for Codex and Copilot). Step-by-step recipes (adding a screen, an API call, a socket event or a translation, checking the docs, checking the PWA) are skills in `.agents/skills/`, and reviewers are agents in `.agents/agents/`. Claude Code, Codex and Copilot all use them; edit only `.agents/`, then run `npm run sync:agents`.
 
 ## Deployment
 

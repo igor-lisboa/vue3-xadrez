@@ -53,6 +53,19 @@ export const pt: Messages = {
   },
   endGame: {
     proposeReset: 'Propor reinício',
+    review: {
+      title: 'Revisão do jogo',
+      moveList: 'Jogadas do jogo',
+      first: 'Posição inicial',
+      previous: 'Jogada anterior',
+      next: 'Jogada seguinte',
+      last: 'Posição final',
+      position: (step, total) => `Jogada ${step} de ${total}`,
+      startPosition: 'Posição inicial',
+      noMoves: 'Não foi feita nenhuma jogada neste jogo.',
+      unavailable:
+        'Não foi possível reproduzir as jogadas deste jogo, por isso o tabuleiro mostra apenas a posição final.',
+    },
   },
   game: {
     resign: 'Desistir',
