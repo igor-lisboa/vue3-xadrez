@@ -64,6 +64,9 @@ export function boardAfter(changes: Partial<Record<SquareName, SimplifiedCell | 
   return cells
 }
 
+/** Game fields besides the moves and the board; by default a game in progress, White on the move. */
+type GameFields = Pick<GameHistorySource, 'ladoIdAtual' | 'finalizado'>
+
 /**
  * A full game as the API sends it. Moves at even positions belong to White, odd to Black.
  * `survivors` are the pieces on the board that carry their own move history (promoted pieces).
@@ -72,6 +75,7 @@ export function makeHistory(
   moves: PlayedMove[],
   finalCells: Cells,
   survivors: Partial<Record<SquareName, PlayedPiece>> = {},
+  game: Partial<GameFields> = {},
 ): GameHistorySource {
   const rows: (PlayedPiece | null)[][] = Array.from({ length: 8 }, () => [])
   finalCells.forEach((cell, index) => {
@@ -86,5 +90,8 @@ export function makeHistory(
     ladoBranco: { jogadasRealizadas: moves.filter((_, index) => index % 2 === 0) },
     ladoPreto: { jogadasRealizadas: moves.filter((_, index) => index % 2 === 1) },
     tabuleiro: { casas: rows },
+    ladoIdAtual: 0,
+    finalizado: null,
+    ...game,
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gameTypeLabel, translateGameType } from '@/domain/labels'
+import { gameTypeLabel, translateEnding, translateGameType } from '@/domain/labels'
 import { orientForSide } from '@/domain/orientation'
 import { en } from '@/i18n/messages/en'
 import { gameTypes } from '../helpers/fixtures'
@@ -13,6 +13,18 @@ describe('translateGameType', () => {
 
   it('keeps names it does not know as the API sent them', () => {
     expect(translateGameType('Robô X Humano', en.labels.playerTypes)).toBe('Robô X Human')
+  })
+})
+
+describe('translateEnding', () => {
+  it('gives the text of a known ending in the language in use', () => {
+    expect(translateEnding(en.labels.endings, 'Empate: Tempo esgotado sem material')).toBe(
+      'Draw: time out and the other side cannot checkmate',
+    )
+  })
+
+  it('keeps an ending it does not know as the API sent it', () => {
+    expect(translateEnding(en.labels.endings, 'Empate: Algo novo')).toBe('Empate: Algo novo')
   })
 })
 

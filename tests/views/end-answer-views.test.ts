@@ -6,12 +6,7 @@ import {
   listPromotionPieces,
   listSquares,
 } from '@/api/services/catalogue'
-import {
-  createGame,
-  getGameHistory,
-  getGameSummary,
-  listSidesWithoutPlayer,
-} from '@/api/services/games'
+import { createGame, getGameSummary, listSidesWithoutPlayer } from '@/api/services/games'
 import { joinGame, leaveGame } from '@/api/services/players'
 import { promotePawn } from '@/api/services/moves'
 import { answerProposal, proposeToOpponent } from '@/api/services/proposals'
@@ -23,9 +18,8 @@ import GameView from '@/views/GameView.vue'
 import PromotePawnView from '@/views/PromotePawnView.vue'
 import EndGameView from '@/views/EndGameView.vue'
 import AnswerProposalView from '@/views/AnswerProposalView.vue'
+import type { SimplifiedCell } from '@/api/types/enums'
 import { makeSummary, gameTypes, pieceTypes, squares } from '../helpers/fixtures'
-import { makeHistory } from '../helpers/history'
-import { startingPosition } from '@/domain/replay'
 
 const { push, routeState } = vi.hoisted(() => ({
   push: vi.fn(async () => undefined),
@@ -45,7 +39,6 @@ vi.mock('@/api/services/catalogue', () => ({
 }))
 vi.mock('@/api/services/games', () => ({
   createGame: vi.fn(),
-  getGameHistory: vi.fn(),
   getGameSummary: vi.fn(),
   listSidesWithoutPlayer: vi.fn(),
 }))
@@ -78,23 +71,104 @@ beforeEach(() => {
   vi.mocked(listPromotionPieces).mockResolvedValue(pieceTypes.slice(1, 5))
   vi.mocked(getGameSummary).mockResolvedValue(makeSummary())
   vi.mocked(triggerAi).mockResolvedValue(undefined)
-  vi.mocked(getGameHistory).mockResolvedValue(makeHistory([], startingPosition()))
 })
 
+/** A board with only the given cells, A8 first; the other squares are empty. */
+function boardWith(cells: Record<number, SimplifiedCell>): (SimplifiedCell | null)[][] {
+  return Array.from({ length: 8 }, (_, row) =>
+    Array.from({ length: 8 }, (_, column) => cells[row * 8 + column] ?? null),
+  )
+}
+
 describe('EndGameView', () => {
-  it('shows the English result of the game', async () => {
+  it('shows the English result of the game and only the actions, without the review', async () => {
     vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ finalizado: 'Vitória: Branco' }))
     const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
     await settle()
     expect(wrapper.find('h1').text()).toBe('White wins')
+    expect(
+      wrapper
+        .find('.btn-group')
+        .findAll('button')
+        .map((button) => button.text()),
+    ).toEqual(['New game?', 'Propose reset'])
+    expect(wrapper.find('.review-game').text()).toBe('Review game')
+    expect(wrapper.find('.chess-board').exists()).toBe(false)
+    expect(wrapper.find('.material-summary').exists()).toBe(false)
   })
 
   it('goes home for a new game', async () => {
     vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ finalizado: 'Empate: Rei afogado' }))
     const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
     await settle()
-    await wrapper.findAll('.end-game-actions button')[0]!.trigger('click')
+    await wrapper.find('.btn-group').findAll('button')[0]!.trigger('click')
     expect(push).toHaveBeenCalledWith({ name: 'home' })
+  })
+
+  it('opens the review of the game, turned to the player', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ finalizado: 'Vitória: Preto' }))
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 1 } })
+    await settle()
+    await wrapper.find('.review-game').trigger('click')
+    expect(push).toHaveBeenCalledWith({
+      name: 'gameReview',
+      params: { id: 7 },
+      query: { side: 1 },
+    })
+  })
+
+  it('explains an insufficient-material draw with the pieces left', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({
+        finalizado: 'Empate: Insuficiência material',
+        tabuleiro: boardWith({ 4: 'Rei-1', 5: 'Cavalo-1', 60: 'Rei-0' }),
+      }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    const summary = wrapper.find('.material-summary')
+    expect(summary.find('.lead').text()).toBe('Neither side has enough pieces left to checkmate.')
+    const sides = summary.findAll('li')
+    expect(sides.map((side) => side.find('strong').text())).toEqual(['White', 'Black'])
+    expect(sides[1]!.find('[role="img"]').attributes('aria-label')).toBe('King, Knight')
+    expect(sides[1]!.findAll('use').map((use) => use.attributes('href'))).toEqual(['#bk', '#bn'])
+    expect(sides[1]!.find('.badge').text()).toBe('Cannot checkmate')
+  })
+
+  it('says which side ran out of time in a time-out draw', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({
+        finalizado: 'Empate: Tempo esgotado sem material',
+        ladoIdAtual: 1,
+        tabuleiro: boardWith({ 4: 'Rei-1', 60: 'Rei-0', 56: 'Torre-0' }),
+      }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    const summary = wrapper.find('.material-summary')
+    expect(summary.find('.lead').text()).toBe('Black ran out of time.')
+    expect(summary.findAll('.badge').map((badge) => badge.text())).toEqual([
+      'Can checkmate',
+      'Cannot checkmate',
+    ])
+  })
+
+  it('names the time-out draw in the heading', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({ finalizado: 'Empate: Tempo esgotado sem material' }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe('Draw: time out and the other side cannot checkmate')
+  })
+
+  it('shows the ending as the API sent it when the frontend does not know it', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({ finalizado: 'Empate: Algo novo' as never }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe('Empate: Algo novo')
   })
 
   it('proposes a reset and returns to the game', async () => {
@@ -102,7 +176,7 @@ describe('EndGameView', () => {
     vi.mocked(proposeToOpponent).mockResolvedValue('Offered reset')
     const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
     await settle()
-    await wrapper.findAll('.end-game-actions button')[1]!.trigger('click')
+    await wrapper.find('.btn-group').findAll('button')[1]!.trigger('click')
     await settle()
     expect(proposeToOpponent).toHaveBeenCalledWith(7, 0, 'reset')
     expect(push).toHaveBeenCalledWith({ name: 'game', params: { id: 7, sideId: 0 } })

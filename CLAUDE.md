@@ -51,7 +51,7 @@ Node 20.19+ or 22.12+ is required.
 
 ## Testing
 
-- Every change ships with tests. Tests mirror `src/`: `tests/domain`, `tests/api`, `tests/composables`, `tests/components`, `tests/views`, `tests/router`, `tests/services`, `tests/i18n`. `tests/tooling` checks the skill and agent files.
+- Every change ships with tests. Tests mirror `src/`: `tests/domain`, `tests/api`, `tests/composables`, `tests/components`, `tests/views`, `tests/router`, `tests/services`, `tests/i18n`, `tests/styles` (global CSS and `index.html`). `tests/tooling` checks the skill and agent files.
 - Domain functions are tested as pure functions. Services are tested with `http` mocked. Composables and views are tested with services and `vue-router` mocked (see `tests/views/*.test.ts` for the pattern) and with `runComposable` (`tests/helpers/run-composable.ts`) when lifecycle hooks are needed.
 - Watchers flush asynchronously: `await nextTick()` before asserting on state that a watcher updates.
 - Use fake timers for the clock (`vi.useFakeTimers()`).
@@ -62,7 +62,8 @@ Node 20.19+ or 22.12+ is required.
 
 - **Screen rules** are decided by `resolveGameScreen` (`src/domain/game-screen.ts`). The priority order is documented there and tested. Change the order only with a spec update.
 - **Board** is built from the summary in `createBoardHouses`. The board is oriented for Black by reversing both the squares and the cells (`orientForSide`).
-- **Game review** is on the End game screen. `useGameReplay` loads `GET /jogos/{id}` and `buildReplay` (`src/domain/replay.ts`) rebuilds every position from the move lists, because the API keeps no snapshots. A replay that does not end on the API's final board is discarded and only the final position is shown. Shared fixtures for it are in `tests/helpers/history.ts`.
+- **Game review** is its own screen (`/game/:id/review`, `GameReviewView`), open to anyone with the room number; End game and Home link to it. `useGameReplay` loads `GET /jogos/{id}` and `buildReplay` (`src/domain/replay.ts`) rebuilds every position from the move lists, because the API keeps no snapshots. A replay that does not end on the API's final board is discarded and only the final position is shown. Shared fixtures for it are in `tests/helpers/history.ts`.
+- **Material draw** details come from `explainMaterialDraw` (`src/domain/material.ts`). It handles two draws: "Empate: Insuficiência material" (neither side can mate) and "Empate: Tempo esgotado sem material" (the side on the move ran out and the other side cannot mate). Its copy of the backend's material rule only explains the result; it never decides one. A time out that the other side can convert is a win for that side and has no details.
 - **Board selection** is in `useChessBoard`: first click selects and fetches moves, a click on a highlighted square plays the move, then the game is reloaded.
 - **Clock** runs in the browser in `useTurnClock`; the server stays the source of truth. When a side reaches zero, the game is reloaded.
 - **Socket** (`useGameSocket`) maps game events to handlers by semantic name. The wire names are in `src/api/socket-events.ts`.
@@ -75,8 +76,17 @@ Node 20.19+ or 22.12+ is required.
 - The API has no OpenAPI entry for socket events; they are documented in the spec and in `socket-events.ts`.
 - URLs changed in the refactor (English paths). Bookmarks to the old Portuguese paths do not work.
 
+## Git
+
+AI agents (Claude Code, Codex, Copilot and their subagents) run **read-only** git commands only. Commands that change the repository or the remote are run by the user, a real person.
+
+- Allowed: `git status`, `diff`, `log`, `show`, `blame`, `ls-files`, `rev-parse`, `branch --list`, `remote -v`, and other commands that only read.
+- Not allowed: `git add`, `commit`, `push`, `pull`, `fetch`, `checkout`, `switch`, `branch` (create, rename, delete), `merge`, `rebase`, `reset`, `restore`, `revert`, `stash`, `tag`, `cherry-pick`, `mv`, `rm`, `clean`, `config`, and anything else that changes the index, the working tree through git, refs, history, the config or the remote.
+- When the work needs one of these, give the user the exact commands to run (for example the branch to create, the files to stage and the commit message) and stop there.
+- The only exception: the user explicitly tells the agent, in the current message, to run that command. The permission covers that one time; it does not carry over to later tasks. A request such as "give me a commit" or "give me a commit title" asks for the text, not for the command to be run.
+
 ## Workflow
 
-- Work on a branch. The default branch is `main`. Do not commit or push unless the user asks.
+- Work on a branch. The default branch is `main`. The user creates the branch, commits and pushes (see Git below).
 - For new features, update `docs/specs/frontend.md` first, then code, then tests.
 - Use the skills (common recipes) and the agents (review, tests) of the project. They are shared by Claude Code, Codex and Copilot: edit only the canonical files in `.agents/skills/` and `.agents/agents/`, then run `npm run sync:agents` to regenerate `.claude/`, `.github/agents/` and `.codex/agents/` (`npm run check:agents` verifies them; see the `manage-agent-files` skill).

@@ -20,5 +20,5 @@ Process:
 2. Write the missing tests for the behaviour, not just the lines.
 3. Run `npm run test:coverage` and report the before and after numbers, the new test count, and any test you could not make pass, with its error.
 
-Do not commit.
+Do not run git commands that change the repository (see "Git" in `CLAUDE.md`).
 '''

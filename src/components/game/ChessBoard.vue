@@ -2,7 +2,6 @@
 import type { MoveName } from '@/api/types/enums'
 import type { BoardHouse } from '@/domain/types'
 import ChessPiece from './ChessPiece.vue'
-import PieceSprite from './PieceSprite.vue'
 import { boardHouseClasses } from './board-house-classes'
 
 const props = defineProps<{
@@ -29,7 +28,6 @@ function houseTitle(house: BoardHouse): string {
     class="chess-board"
     :class="{ 'active-side-border': props.highlightTurn, 'spectator-only': props.spectatorOnly }"
   >
-    <PieceSprite />
     <div
       v-for="(house, index) in houses"
       :key="index"

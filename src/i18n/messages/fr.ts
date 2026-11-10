@@ -21,6 +21,8 @@ export const fr: Messages = {
     or: 'OU',
     enterRoom: 'Rejoindre une salle',
     roomPrompt: 'Quelle salle souhaitez-vous rejoindre ?',
+    reviewGame: 'Revoir une partie',
+    reviewPrompt: 'Quel est le numéro de la salle de la partie à revoir ?',
     shiftTimes: {
       five: '5 minutes',
       ten: '10 minutes',
@@ -52,19 +54,29 @@ export const fr: Messages = {
   },
   endGame: {
     proposeReset: 'Proposer une réinitialisation',
-    review: {
-      title: 'Revue de la partie',
-      moveList: 'Coups de la partie',
-      first: 'Position de départ',
-      previous: 'Coup précédent',
-      next: 'Coup suivant',
-      last: 'Position finale',
-      position: (step, total) => `Coup ${step} sur ${total}`,
-      startPosition: 'Position de départ',
-      noMoves: 'Aucun coup n’a été joué dans cette partie.',
-      unavailable:
-        'Les coups de cette partie ne peuvent pas être rejoués : l’échiquier montre seulement la position finale.',
-    },
+    reviewGame: 'Revoir la partie',
+  },
+  material: {
+    title: 'Pièces restantes',
+    noMaterial: 'Aucun des deux camps n’a assez de pièces pour mater.',
+    timeOut: { 0: 'Les Blancs n’ont plus de temps.', 1: 'Les Noirs n’ont plus de temps.' },
+    canCheckmate: 'Peut mater',
+    cannotCheckmate: 'Ne peut pas mater',
+  },
+  review: {
+    title: 'Revue de la partie',
+    room: (gameId) => `Salle ${gameId}`,
+    inProgress: 'Partie en cours',
+    moveList: 'Coups de la partie',
+    first: 'Position de départ',
+    previous: 'Coup précédent',
+    next: 'Coup suivant',
+    last: 'Position finale',
+    position: (step, total) => `Coup ${step} sur ${total}`,
+    startPosition: 'Position de départ',
+    noMoves: 'Aucun coup n’a été joué dans cette partie.',
+    unavailable:
+      'Les coups de cette partie ne peuvent pas être rejoués : l’échiquier montre seulement la position finale.',
   },
   game: {
     resign: 'Abandonner',
@@ -92,8 +104,8 @@ export const fr: Messages = {
       'Empate: Comum acordo': 'Nulle par accord mutuel',
       'Empate: Regra das 3 posições': 'Nulle : répétition de position',
       'Desistência: Um jogador deixou a partida': 'Abandon : un joueur a quitté la partie',
-      'Tempo esgotado: o tempo de um jogador acabou':
-        'Temps écoulé : le temps d’un joueur est épuisé',
+      'Empate: Tempo esgotado sem material':
+        'Nulle : temps écoulé et l’adversaire ne peut pas mater',
     },
     moves: {
       'Roque Menor': 'Petit roque',

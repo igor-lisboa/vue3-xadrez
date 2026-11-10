@@ -1,25 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
-import { getGameHistory, getGameSummary } from '@/api/services/games'
-import { proposeToOpponent } from '@/api/services/proposals'
+import { getGameHistory } from '@/api/services/games'
+import type { SideId } from '@/api/types/enums'
+import { notify } from '@/services/dialogs'
 import { setLocale } from '@/services/locale'
-import EndGameView from '@/views/EndGameView.vue'
-import { makeSummary, pieceTypes, squares } from '../helpers/fixtures'
+import GameReviewView from '@/views/GameReviewView.vue'
+import { pieceTypes, squares } from '../helpers/fixtures'
 import { boardAfter, makeHistory, played } from '../helpers/history'
+import { startingPosition } from '@/domain/replay'
 
 const { push } = vi.hoisted(() => ({ push: vi.fn(async () => undefined) }))
 
 vi.mock('vue-router', async (importOriginal) => ({
   ...(await importOriginal<typeof import('vue-router')>()),
   useRouter: () => ({ push }),
-  useRoute: () => ({ name: 'endGame', params: {} }),
+  useRoute: () => ({ name: 'gameReview', params: {} }),
 }))
 vi.mock('@/api/services/catalogue', () => ({ listSquares: vi.fn(), listPieceTypes: vi.fn() }))
-vi.mock('@/api/services/games', () => ({ getGameHistory: vi.fn(), getGameSummary: vi.fn() }))
-vi.mock('@/api/services/proposals', () => ({ proposeToOpponent: vi.fn() }))
+vi.mock('@/api/services/games', () => ({ getGameHistory: vi.fn() }))
 vi.mock('@/services/dialogs', () => ({ notify: vi.fn(), askText: vi.fn() }))
-vi.mock('socket.io-client', () => ({ io: () => ({ on: vi.fn(), disconnect: vi.fn() }) }))
 
 /** Fool’s mate: Black wins after four moves. */
 const foolsMate = () =>
@@ -35,10 +35,21 @@ const foolsMate = () =>
       D8: null,
       H4: 'Rainha-1',
     }),
+    {},
+    { finalizado: { tipo: 'Vitória: Preto' } },
   )
 
-async function open(sideId: 0 | 1 = 0) {
-  const wrapper = mount(EndGameView, { props: { gameId: 7, sideId } })
+/** Only the two kings and a white bishop are left. */
+function kingsAndBishop(): ReturnType<typeof startingPosition> {
+  const cells = startingPosition().map(() => null) as ReturnType<typeof startingPosition>
+  cells[4] = 'Rei-1'
+  cells[60] = 'Rei-0'
+  cells[61] = 'Bispo-0'
+  return cells
+}
+
+async function open(sideId: SideId = 0) {
+  const wrapper = mount(GameReviewView, { props: { gameId: 7, sideId } })
   await flushPromises()
   await flushPromises()
   return wrapper
@@ -52,16 +63,15 @@ beforeEach(() => {
   setLocale('en')
   vi.mocked(listSquares).mockResolvedValue(squares)
   vi.mocked(listPieceTypes).mockResolvedValue(pieceTypes)
-  vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ finalizado: 'Vitória: Preto' }))
   vi.mocked(getGameHistory).mockResolvedValue(foolsMate())
 })
 
-describe('EndGameView review', () => {
-  it('shows the result, the final board and every move of the game', async () => {
+describe('GameReviewView', () => {
+  it('shows the room, the result, the final board and every move of the game', async () => {
     const wrapper = await open()
     expect(getGameHistory).toHaveBeenCalledWith(7)
-    expect(wrapper.find('h1').text()).toBe('Black wins')
-    expect(wrapper.text()).toContain('Game review')
+    expect(wrapper.find('h1').text()).toBe('Game review')
+    expect(wrapper.find('.lead').text()).toBe('Room 7 · Black wins')
     expect(wrapper.findAll('.board-house')).toHaveLength(64)
     expect(moveButtons(wrapper)).toEqual([
       'Pawn F2 → F3',
@@ -70,6 +80,13 @@ describe('EndGameView review', () => {
       'Queen D8 → H4',
     ])
     expect(wrapper.text()).toContain('Move 4 of 4')
+    expect(wrapper.find('.material-summary').exists()).toBe(false)
+  })
+
+  it('says when the game is still in progress', async () => {
+    vi.mocked(getGameHistory).mockResolvedValue(makeHistory([], startingPosition()))
+    const wrapper = await open()
+    expect(wrapper.find('.lead').text()).toBe('Room 7 · Game in progress')
   })
 
   it('opens on the final position, with the last move marked on the board', async () => {
@@ -103,14 +120,14 @@ describe('EndGameView review', () => {
     expect(wrapper.find('button[aria-label="Previous move"]').attributes('disabled')).toBeDefined()
   })
 
-  it('turns the board for the Black player', async () => {
+  it('turns the board for Black', async () => {
     const white = await open(0)
     const black = await open(1)
     expect(white.find('.board-house').attributes('title')).toBe('A8')
     expect(black.find('.board-house').attributes('title')).toBe('H1')
   })
 
-  it('does not let the player play on the review board', async () => {
+  it('does not let the viewer play on the board', async () => {
     const wrapper = await open()
     expect(wrapper.find('.chess-board').classes()).toContain('spectator-only')
     expect(wrapper.find('.chess-board').classes()).not.toContain('active-side-border')
@@ -134,28 +151,46 @@ describe('EndGameView review', () => {
     expect(wrapper.find('button[aria-label="Next move"]').exists()).toBe(false)
   })
 
-  it('shows the same note when the game could not be loaded', async () => {
+  it('explains an insufficient-material draw from the final board', async () => {
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory(
+        [],
+        kingsAndBishop(),
+        {},
+        { finalizado: { tipo: 'Empate: Insuficiência material' } },
+      ),
+    )
+    const wrapper = await open()
+    expect(wrapper.find('.material-summary').text()).toContain(
+      'Neither side has enough pieces left to checkmate.',
+    )
+    expect(wrapper.find('.material-summary [role="img"]').attributes('aria-label')).toBe(
+      'King, Bishop',
+    )
+  })
+
+  it('shows the error and goes home when the game cannot be loaded', async () => {
     vi.mocked(getGameHistory).mockRejectedValue(new Error('boom'))
     const wrapper = await open()
-    expect(wrapper.text()).toContain('cannot be replayed')
-    expect(wrapper.find('h1').text()).toBe('Black wins')
+    expect(notify).toHaveBeenCalled()
+    expect(push).toHaveBeenCalledWith({ name: 'home' })
+    expect(wrapper.find('.chess-board').exists()).toBe(false)
+  })
+
+  it('goes home for a new game', async () => {
+    const wrapper = await open()
+    const button = wrapper.findAll('button').find((item) => item.text() === 'New game?')!
+    await button.trigger('click')
+    expect(push).toHaveBeenCalledWith({ name: 'home' })
   })
 
   it('shows the review in the language in use', async () => {
     setLocale('pt-BR')
     const wrapper = await open()
-    expect(wrapper.text()).toContain('Revisão da partida')
+    expect(wrapper.find('h1').text()).toBe('Revisão da partida')
+    expect(wrapper.find('.lead').text()).toBe('Sala 7 · Vitória das pretas')
     expect(wrapper.text()).toContain('Jogada 4 de 4')
     expect(moveButtons(wrapper)[3]).toBe('Rainha D8 → H4')
     expect(wrapper.find('button[aria-label="Jogada anterior"]').exists()).toBe(true)
-  })
-
-  it('keeps the actions below the review', async () => {
-    vi.mocked(proposeToOpponent).mockResolvedValue('Offered reset')
-    const wrapper = await open()
-    const buttons = wrapper.findAll('.end-game-actions button').map((button) => button.text())
-    expect(buttons).toEqual(['New game?', 'Propose reset'])
-    await wrapper.findAll('.end-game-actions button')[0]!.trigger('click')
-    expect(push).toHaveBeenCalledWith({ name: 'home' })
   })
 })

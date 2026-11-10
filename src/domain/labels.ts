@@ -34,3 +34,11 @@ export function translateGameType(
     })
     .join(' X ')
 }
+
+/**
+ * Text of a game ending. An ending the frontend has no text for is shown as the API sent it,
+ * so a new ending on the server never leaves the heading empty.
+ */
+export function translateEnding(endings: Partial<Record<string, string>>, ending: string): string {
+  return endings[ending] ?? ending
+}

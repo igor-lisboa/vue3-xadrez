@@ -29,7 +29,7 @@ Every change ships with tests. Tests mirror `src/` (`tests/domain`, `api`, `comp
 
 ## Workflow
 
-- Work on a branch (default branch `main`). Do not commit or push unless asked.
+- Work on a branch (default branch `main`). Agents run read-only git commands only (`status`, `diff`, `log`, `show`). The user runs every git command that changes the repository or the remote (`add`, `commit`, `push`, `checkout`, `branch`, `reset`, `stash`, ...): give the user the commands instead. Only an explicit instruction in the current message allows running one, and only that once. See "Git" in `CLAUDE.md`.
 - For new features, update `docs/specs/frontend.md` first, then code, then tests.
 - Skills (recipes) are in `.agents/skills/`, which Codex and Copilot read directly. Agents are written in `.agents/agents/` and generated into `.codex/agents/` (Codex), `.github/agents/` (Copilot) and `.claude/` (Claude Code). Edit only `.agents/`, then run `npm run sync:agents`.
 

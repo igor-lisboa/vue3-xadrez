@@ -56,6 +56,52 @@ describe('useGameReplay', () => {
     unmount()
   })
 
+  it('gives the result of the game, or null while it is being played', async () => {
+    const { result, unmount } = await open()
+    expect(result.ending.value).toBeNull()
+    expect(result.material.value).toBeNull()
+    unmount()
+
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory([], boardAfter({}), {}, { finalizado: { tipo: 'Vitória: Branco' } }),
+    )
+    const finished = await open()
+    expect(finished.result.ending.value).toBe('Vitória: Branco')
+    finished.unmount()
+  })
+
+  it('explains a time-out draw from the final position and the side on move', async () => {
+    const kingsAndQueen = boardAfter({}).fill(null)
+    kingsAndQueen[4] = 'Rei-1'
+    kingsAndQueen[59] = 'Rainha-0'
+    kingsAndQueen[60] = 'Rei-0'
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory(
+        [],
+        kingsAndQueen,
+        {},
+        {
+          finalizado: { tipo: 'Empate: Tempo esgotado sem material' },
+          ladoIdAtual: 1,
+        },
+      ),
+    )
+    const { result, unmount } = await open()
+    expect(result.material.value?.cause).toEqual({ kind: 'timeOut', sideId: 1 })
+    expect(result.material.value?.sides[0].pieces).toEqual(['Rei', 'Rainha'])
+    unmount()
+  })
+
+  it('calls back when the game cannot be loaded', async () => {
+    vi.mocked(getGameHistory).mockRejectedValue(new Error('boom'))
+    const onError = vi.fn()
+    const opened = runComposable(() => useGameReplay(7, 0, { onError }))
+    await flushPromises()
+    expect(onError).toHaveBeenCalled()
+    expect(opened.result.replay.value).toBeNull()
+    opened.unmount()
+  })
+
   it('steps back and forward and shows the position of each step', async () => {
     const { result, unmount } = await open()
     result.previous()

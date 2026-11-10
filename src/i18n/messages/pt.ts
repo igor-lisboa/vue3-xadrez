@@ -22,6 +22,8 @@ export const pt: Messages = {
     or: 'OU',
     enterRoom: 'Entrar numa sala',
     roomPrompt: 'Em que sala pretende entrar?',
+    reviewGame: 'Rever um jogo',
+    reviewPrompt: 'Qual é o número da sala do jogo que pretende rever?',
     shiftTimes: {
       five: '5 minutos',
       ten: '10 minutos',
@@ -53,19 +55,29 @@ export const pt: Messages = {
   },
   endGame: {
     proposeReset: 'Propor reinício',
-    review: {
-      title: 'Revisão do jogo',
-      moveList: 'Jogadas do jogo',
-      first: 'Posição inicial',
-      previous: 'Jogada anterior',
-      next: 'Jogada seguinte',
-      last: 'Posição final',
-      position: (step, total) => `Jogada ${step} de ${total}`,
-      startPosition: 'Posição inicial',
-      noMoves: 'Não foi feita nenhuma jogada neste jogo.',
-      unavailable:
-        'Não foi possível reproduzir as jogadas deste jogo, por isso o tabuleiro mostra apenas a posição final.',
-    },
+    reviewGame: 'Rever jogo',
+  },
+  material: {
+    title: 'Peças restantes',
+    noMaterial: 'Nenhum dos lados tem peças suficientes para dar xeque-mate.',
+    timeOut: { 0: 'O tempo das brancas esgotou-se.', 1: 'O tempo das pretas esgotou-se.' },
+    canCheckmate: 'Pode dar xeque-mate',
+    cannotCheckmate: 'Não pode dar xeque-mate',
+  },
+  review: {
+    title: 'Revisão do jogo',
+    room: (gameId) => `Sala ${gameId}`,
+    inProgress: 'Jogo em curso',
+    moveList: 'Jogadas do jogo',
+    first: 'Posição inicial',
+    previous: 'Jogada anterior',
+    next: 'Jogada seguinte',
+    last: 'Posição final',
+    position: (step, total) => `Jogada ${step} de ${total}`,
+    startPosition: 'Posição inicial',
+    noMoves: 'Não foi feita nenhuma jogada neste jogo.',
+    unavailable:
+      'Não foi possível reproduzir as jogadas deste jogo, por isso o tabuleiro mostra apenas a posição final.',
   },
   game: {
     resign: 'Desistir',
@@ -93,8 +105,8 @@ export const pt: Messages = {
       'Empate: Comum acordo': 'Empate por acordo mútuo',
       'Empate: Regra das 3 posições': 'Empate: repetição de posições',
       'Desistência: Um jogador deixou a partida': 'Desistência: um jogador abandonou o jogo',
-      'Tempo esgotado: o tempo de um jogador acabou':
-        'Tempo esgotado: o tempo de um jogador acabou',
+      'Empate: Tempo esgotado sem material':
+        'Empate: tempo esgotado e o adversário não pode dar xeque-mate',
     },
     moves: {
       'Roque Menor': 'Roque pequeno',

@@ -49,9 +49,13 @@ describe('message files', () => {
   })
 
   it.each(LOCALES)('%s builds the position of a review step from both numbers', (locale) => {
-    const text = MESSAGES[locale].endGame.review.position(12, 40)
+    const text = MESSAGES[locale].review.position(12, 40)
     expect(text).toContain('12')
     expect(text).toContain('40')
+  })
+
+  it.each(LOCALES)('%s names the room of a reviewed game with its number', (locale) => {
+    expect(MESSAGES[locale].review.room(7)).toContain('7')
   })
 
   it('builds the English title of a game', () => {

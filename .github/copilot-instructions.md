@@ -7,5 +7,6 @@ Vue 3 + TypeScript chess frontend. The rules are in `AGENTS.md` (summary) and `C
 - Layers point inward: views, then composables and components, then `api/services` and `domain`. `domain/` is pure. Components have no HTTP or router. Files stay under 300 lines.
 - TypeScript is strict: no `any`.
 - Every change ships with tests under `tests/`, mirroring `src/`. Do not lower the coverage thresholds in `vite.config.ts`.
-- Do not change the look (Bootstrap 5, dark theme) without the user's decision. Do not commit unless asked.
+- Do not change the look (Bootstrap 5, dark theme) without the user's decision.
+- Run read-only git commands only (`status`, `diff`, `log`, `show`). The user runs every git command that changes the repository or the remote (`add`, `commit`, `push`, `checkout`, `branch`, `reset`, `stash`, ...); give the user the commands instead. See "Git" in `CLAUDE.md`.
 - Skills are in `.agents/skills/` and agents in `.github/agents/`. Both are generated: edit the files in `.agents/` and run `npm run sync:agents`.

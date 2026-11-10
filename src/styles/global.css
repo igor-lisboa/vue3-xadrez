@@ -10,3 +10,11 @@ body,
 #app {
   display: grid;
 }
+
+/* The layout already fits the phone, so zoom only ever happens by accident (a double tap
+   on the board). Scrolling stays; pinch and double-tap zoom do not. Set on every element
+   because touch-action is not inherited past scrolling containers such as the move list.
+   Safari ignores user-scalable=no in the viewport tag, so this rule is what stops it there. */
+* {
+  touch-action: pan-x pan-y;
+}

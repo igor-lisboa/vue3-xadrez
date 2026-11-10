@@ -21,6 +21,8 @@ export const de: Messages = {
     or: 'ODER',
     enterRoom: 'Raum betreten',
     roomPrompt: 'Welchen Raum möchtest du betreten?',
+    reviewGame: 'Eine Partie ansehen',
+    reviewPrompt: 'Welche Raumnummer hat die Partie, die du ansehen möchtest?',
     shiftTimes: {
       five: '5 Minuten',
       ten: '10 Minuten',
@@ -52,19 +54,29 @@ export const de: Messages = {
   },
   endGame: {
     proposeReset: 'Zurücksetzen vorschlagen',
-    review: {
-      title: 'Partieanalyse',
-      moveList: 'Züge der Partie',
-      first: 'Ausgangsstellung',
-      previous: 'Voriger Zug',
-      next: 'Nächster Zug',
-      last: 'Endstellung',
-      position: (step, total) => `Zug ${step} von ${total}`,
-      startPosition: 'Ausgangsstellung',
-      noMoves: 'In dieser Partie wurde kein Zug gespielt.',
-      unavailable:
-        'Die Züge dieser Partie lassen sich nicht nachspielen, daher zeigt das Brett nur die Endstellung.',
-    },
+    reviewGame: 'Partie ansehen',
+  },
+  material: {
+    title: 'Verbliebene Figuren',
+    noMaterial: 'Keine Seite hat genug Material, um mattzusetzen.',
+    timeOut: { 0: 'Weiß hat keine Zeit mehr.', 1: 'Schwarz hat keine Zeit mehr.' },
+    canCheckmate: 'Kann mattsetzen',
+    cannotCheckmate: 'Kann nicht mattsetzen',
+  },
+  review: {
+    title: 'Partieanalyse',
+    room: (gameId) => `Raum ${gameId}`,
+    inProgress: 'Partie läuft noch',
+    moveList: 'Züge der Partie',
+    first: 'Ausgangsstellung',
+    previous: 'Voriger Zug',
+    next: 'Nächster Zug',
+    last: 'Endstellung',
+    position: (step, total) => `Zug ${step} von ${total}`,
+    startPosition: 'Ausgangsstellung',
+    noMoves: 'In dieser Partie wurde kein Zug gespielt.',
+    unavailable:
+      'Die Züge dieser Partie lassen sich nicht nachspielen, daher zeigt das Brett nur die Endstellung.',
   },
   game: {
     resign: 'Aufgeben',
@@ -92,8 +104,8 @@ export const de: Messages = {
       'Empate: Comum acordo': 'Remis durch Einigung',
       'Empate: Regra das 3 posições': 'Remis: dreifache Stellungswiederholung',
       'Desistência: Um jogador deixou a partida': 'Aufgabe: ein Spieler hat das Spiel verlassen',
-      'Tempo esgotado: o tempo de um jogador acabou':
-        'Zeit abgelaufen: die Zeit eines Spielers ist um',
+      'Empate: Tempo esgotado sem material':
+        'Remis: Zeit abgelaufen und der Gegner kann nicht mattsetzen',
     },
     moves: {
       'Roque Menor': 'Kurze Rochade',

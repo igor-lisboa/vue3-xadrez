@@ -1,7 +1,7 @@
 // Service worker: keeps the app's own files so the app opens without a connection.
 // API answers and other origins are never cached; the game always comes from the server.
 // Bump CACHE_NAME when the list of files below changes.
-const CACHE_NAME = 'chess-shell-v1'
+const CACHE_NAME = 'chess-shell-v2'
 const SHELL = [
   '/',
   '/index.html',

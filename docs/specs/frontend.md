@@ -13,22 +13,25 @@ A browser client for a chess game. A player:
 2. takes a side (White or Black), unless the game was created against the AI,
 3. plays moves, offers or answers draws and resets, promotes pawns, and may resign.
 
-The frontend holds no game rules of its own. The API decides what is legal and what has ended. The frontend only shows the state and sends the player's actions.
+The frontend holds no game rules of its own. The API decides what is legal and what has ended. The frontend only shows the state and sends the player's actions. The one exception is the material rule of section 3.5, which the frontend repeats only to explain a result the API has already decided.
+
+Anyone who knows a room number can also review that game's moves, without taking a side.
 
 ## 2. Screens and routes
 
 | Screen | Route | Purpose |
 | --- | --- | --- |
-| Home | `/` | Choose player types and turn time, create a game, or enter a room |
+| Home | `/` | Choose player types and turn time, create a game, enter a room, or review a game |
 | Select side | `/game/:id?side=0\|1` | Choose a free side of a game and join it |
 | Game | `/game/:id/side/:sideId` | Board, clocks and actions |
 | Promote pawn | `/game/:id/side/:sideId/promote-pawn` | Choose the piece for a promoted pawn |
-| End game | `/game/:id/side/:sideId/end-game` | Result of a finished game, review of its moves on the board; propose a reset |
+| End game | `/game/:id/side/:sideId/end-game` | Result of a finished game (with the details of a material draw); new game, propose a reset, or open the review |
 | Answer proposal | `/game/:id/side/:sideId/answer-proposal/tie` or `/reset` | Accept or decline a draw or reset offer |
+| Game review | `/game/:id/review?side=0\|1` | Step through the moves of a game on the board. Open to anyone; not part of the game flow |
 
 Any other path goes to Home.
 
-Invalid route params (a game id that is not a non-negative integer, a side that is not 0 or 1, an unknown proposal type) send the player to Home.
+Invalid route params (a game id that is not a non-negative integer, a side that is not 0 or 1, an unknown proposal type) send the player to Home. On Game review, the `side` query only turns the board: a missing or invalid value shows it from White's side.
 
 ### 2.1 Screen rules
 
@@ -40,7 +43,7 @@ The screen a player is on is decided by the game state, not chosen by the player
    Both sides go to the same screen for rules 1 and 2: the side that received the offer answers, and the side that made it sees a waiting message.
 3. This side must promote a pawn → **Promote pawn**.
 4. This side has no player (it was left empty) → **Select side**, with that side preselected.
-5. The game has finished → **End game** (result and game review).
+5. The game has finished → **End game**.
 6. Otherwise → **Game**.
 
 When the resolved screen differs from the current one, the frontend navigates. When it is the same, it stays. A player can therefore be moved between screens by the other player's actions, through the socket events below.
@@ -57,6 +60,7 @@ Texts quoted in this section are the English versions. Each language shows its o
   - AI X AI: opens the game directly, as side 0 (White).
   - Any other type: opens Select side for the new game.
 - "Enter a room": asks for a game id in a browser prompt. An empty answer or Cancel does nothing. A non-empty answer opens Select side for that id; an id that is not a non-negative integer sends the player back to Home (section 2).
+- "Review a game": asks for a room number in a browser prompt, the same way, and opens Game review for that game (from White's side).
 - While the types load, or a game is being created, a spinner replaces the content.
 - A failed creation shows the error message and stays on Home.
 
@@ -92,6 +96,7 @@ Clocks:
 
 - Show each side's remaining time as `HH:MM:SS`.
 - The side on turn counts down every second in the browser. When that side reaches zero, the game is reloaded so the server can end it.
+- The clocks stop when the game ends. A side that ran out shows `00:00:00`; a negative time from the API is never shown.
 - Clocks are not shown when the game has no time limit.
 
 Actions:
@@ -112,14 +117,13 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 ### 3.5 End game
 
 - Heading: the result of the game in the language in use (see section 6.2).
-- **Game review**, below the heading. It lets the player see how the game ended and learn from it. It is the same for a win, a draw, a resignation and a time out.
-  - **Board.** Shows the game's **final position** when the screen opens, from the player's side (Black sees it reversed). The board cannot be clicked. The move behind the position is marked with the board colours of section 4: the square the piece left is yellow, the square it reached is green, or red when it captured a piece. Special moves are named in the square tooltip.
-  - **Controls.** Four buttons go to the starting position, the previous move, the next move and the final position, and a text shows where the player is ("Move 12 of 40", or "Starting position"). A button that cannot go further is disabled. The keys Left, Right, Home and End do the same, except while a form control (such as the language list) has the focus.
-  - **Move list.** A table with one row per move number: White's move and Black's answer. Each move is a button that shows the position after it; the move on the board is highlighted. A long list scrolls inside its own box. A move reads `Pawn E2 → E4`; a capture uses `×` (`Knight G1 × F3`); a promotion adds the chosen piece (`Pawn E7 → E8 = Queen`); castling and en passant are named (`King E1 → G1 (Short castling)`). Piece and move names are in the language in use.
-  - **Where the positions come from.** The API keeps no earlier positions, so the frontend rebuilds them: it starts from the standard position and plays the moves of both sides in the order of the API's turn count (the rook of a castling, the pawn taken en passant and the piece chosen in a promotion included; the API does not name the chosen piece in the move, so it is read from the piece that keeps the promotion among its moves). The result is used only if it ends on the board the API reports.
-  - **When it cannot be replayed** (for example a game that did not start from the standard position, or a game that could not be loaded), the board shows the final position only, with the note "The moves of this game cannot be replayed, so the board shows the final position only." A game with no moves says "No moves were played in this game."
+- **Details of a material draw.** The API ends a game as "Draw: insufficient material" when neither side can checkmate, and as "Draw: time out and the other side cannot checkmate" when the side on the move runs out of time and the other side cannot checkmate. A time out that the other side can convert is a win for that side, so it shows no details. For these two results only, the screen shows, under the heading:
+  - **The cause**: "Neither side has enough pieces left to checkmate." or "White ran out of time." (or Black).
+  - **The pieces left**, one line per side: the side's name, whether those pieces can checkmate, and the pieces as pictures (King first, then Queen, Rook, Bishop, Knight, Pawn), named for screen readers.
+  - **How the cause is found.** The frontend repeats the API's material rule, counting the king. A side cannot checkmate only with a bare king, king and bishop, king and knight, or king and two knights; with any other pieces it can (for example king and two rooks, or king, queen and knight). Insufficient material is a draw only when both sides cannot checkmate. The cause of a time-out draw is the side on the move, which is the side that ran out of time. The clocks are not read, because the API keeps the time of the side on the move after the game has ended. The rule only explains the result; the API's result is always the one shown.
 - **New game?** goes to Home.
 - **Propose reset** offers a reset to the opponent, shows the message, and returns to the game. The reset can be answered on the Answer proposal screen.
+- **Review game** opens Game review for this game, with the board turned to the player's side.
 - The screen returns to the game when the opponent proposes a draw or reset, or answers one.
 
 ### 3.6 Answer proposal
@@ -130,20 +134,35 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 - On submit, shows the message and returns to the game.
 - The screen reloads when the answer arrives over the socket.
 
+### 3.7 Game review
+
+Lets anyone who knows the room number see how a game went, step by step. It is opened from End game (**Review game**) or from Home (**Review a game**). The viewer takes no side and cannot change the game.
+
+- **Heading**: "Game review", then a line with the room and the result: "Room 7 · Black wins", or "Room 7 · Game in progress" for a game that has not finished. A game in progress shows the moves played up to the moment the screen opened; it does not follow new moves.
+- **Details of a material draw**: the same as on End game (section 3.5).
+- **Board.** Shows the game's **final position** when the screen opens (the current one, for a game in progress), from White's side, or from Black's side when the link has `?side=1` (End game adds the player's side). The board cannot be clicked. The move behind the position is marked with the board colours of section 4: the square the piece left is yellow, the square it reached is green, or red when it captured a piece. Special moves are named in the square tooltip.
+- **Controls.** Four buttons go to the starting position, the previous move, the next move and the final position, and a text shows where the viewer is ("Move 12 of 40", or "Starting position"). A button that cannot go further is disabled. The keys Left, Right, Home and End do the same, except while a form control (such as the language list) has the focus.
+- **Move list.** A table with one row per move number: White's move and Black's answer. Each move is a button that shows the position after it; the move on the board is highlighted. A long list scrolls inside its own box. A move reads `Pawn E2 → E4`; a capture uses `×` (`Knight G1 × F3`); a promotion adds the chosen piece (`Pawn E7 → E8 = Queen`); castling and en passant are named (`King E1 → G1 (Short castling)`). Piece and move names are in the language in use.
+- **Where the positions come from.** The API keeps no earlier positions, so the frontend rebuilds them: it starts from the standard position and plays the moves of both sides in the order of the API's turn count (the rook of a castling, the pawn taken en passant and the piece chosen in a promotion included; the API does not name the chosen piece in the move, so it is read from the piece that keeps the promotion among its moves). The result is used only if it ends on the board the API reports.
+- **When it cannot be replayed** (for example a game that did not start from the standard position), the board shows the final position only, with the note "The moves of this game cannot be replayed, so the board shows the final position only." A game with no moves says "No moves were played in this game."
+- **A game that cannot be loaded** (for example a room that does not exist) shows the error and goes to Home.
+- **New game?** goes to Home.
+
 ## 4. Look and feel
 
 The visual design is kept as it was. Changes to appearance need a deliberate decision and an update to this section.
 
 - **Theme.** Dark page background (Bootstrap `bg-dark`), white text, centred content. The header is the app title, linked to Home, with the language selector on the right (a small dark `form-select` that lists the languages by their own names, see section 6). The footer credits the author and the API repository in light grey.
-- **Typography and buttons.** Bootstrap 5 defaults. Headings are the page title (`h1`), a lead sentence (`lead`), and `h2` for "OR" on Home. Action buttons are large (`btn-lg`) and bold. Choice groups are radio button groups (outlined primary buttons).
+- **Typography and buttons.** Bootstrap 5 defaults. Headings are the page title (`h1`), a lead sentence (`lead`), and `h2` for "OR" on Home. Under "OR", **Enter a room** and **Review a game** sit side by side, and wrap on narrow phones. Action buttons are large (`btn-lg`) and bold. Choice groups are radio button groups (outlined primary buttons).
 - **Button variants.** Primary actions use light buttons with a white border. Offering a draw is red (`btn-danger`); offering a reset is dark (`btn-dark`).
 - **Pieces.** All twelve pieces come from one SVG set, `src/assets/pieces/standard.svg` (the Wikimedia "cburnett" set, CC BY-SA 3.0; its license text is in the file). White and black pieces share the same drawing, so they look alike, and the pictures are not font glyphs, so they look the same on every device. The API's Unicode symbols are not used.
 - **Board.** Square board with an 8 px rebeccapurple border, rounded corners. It is 656 px wide on large screens and shrinks to the screen width on phones (the 8 × 8 squares and the pictures scale with it). Light squares are white, dark squares grey (`#999`). Selected piece is yellow, possible move green, capture red, check dark red. Hovering a square shows light blue, pressing shows blue-violet. The board border is greenyellow when it is the player's turn.
-- **Game review.** The end game screen has an `h2` ("Game review"), the board (same look and colours as the game board, not clickable, highlighting the last move as origin yellow, destination green or red), a row of four outlined light buttons (« ‹ › ») in a Bootstrap `btn-group` with the position text under it, and the move list: a `table-dark` small table, 656 px wide at most and 18 rem tall at most (it scrolls), whose moves are small buttons (outlined light, filled light for the move on the board). The note for a game that cannot be replayed is a light alert.
+- **End game.** The heading, then, for a material draw, a `lead` sentence with the cause and a dark list (`list-group`, one item per side, 656 px wide at most) where each item shows the side's name in bold, a pill badge (green "Can checkmate", grey "Cannot checkmate") and the pieces as 2 rem pictures. Below, the two buttons side by side in a `btn-group` (**New game?** light, **Propose reset** dark), and **Review game** (light) on its own line under them.
+- **Game review.** The review screen has an `h1` ("Game review"), a `lead` line with the room and the result, the material details of a material draw (as on End game), the board (same look and colours as the game board, not clickable, highlighting the last move as origin yellow, destination green or red), a row of four outlined light buttons (« ‹ › ») in a Bootstrap `btn-group` with the position text under it, and the move list: a `table-dark` small table, 656 px wide at most and 18 rem tall at most (it scrolls), whose moves are small buttons (outlined light, filled light for the move on the board). The note for a game that cannot be replayed is a light alert. **New game?** (light) is at the bottom.
 - **Spinner.** A light Bootstrap spinner in place of the content while loading.
 - **Clocks.** A list of two Bootstrap list items, centred, with a blue pill badge showing the time. 25 % wide on screens wider than 576 px, full width on phones.
 - **Actions.** Resign and Offer draw sit side by side on wider screens and stacked, full width, on phones.
-- **Phones.** Layout works from 320 px wide with a 16 px gutter on each side and no horizontal scrolling. Taps on squares do not wait for double-tap zoom, and long presses do not select the text of the board.
+- **Phones.** Layout works from 320 px wide with a 16 px gutter on each side and no horizontal scrolling. The page does not zoom: a double tap or a pinch never resizes the screen (scrolling still works). Taps on squares do not wait for double-tap zoom, and long presses do not select the text of the board.
 - **Install.** The app can be installed on the home screen as a web app (PWA). Installing needs no app store. See the install rules below.
 - **Install rules.** The app ships a web app manifest (name, icons, standalone display) and a service worker. The service worker stores the app's own files so the app opens when the connection is slow. It never stores API answers: game data always comes from the server.
   - On browsers that allow installing (Chrome and Edge on Android and desktop), an **Install app** button is shown at the bottom of every screen until the app is installed. It opens the browser's install dialog.
@@ -164,7 +183,7 @@ The frontend's services, one file per area under `src/api/services/`:
 | Catalogue | `GET /tipos-de-peca/promocao-peao` | Promotion choices |
 | Games | `POST /jogos` | Create a game |
 | Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state |
-| Games | `GET /jogos/{id}` | Moves of both sides and the final board, for the game review |
+| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`) and the side on the move, for the game review |
 | Games | `GET /jogos/{id}/lado-sem-jogador` | Free sides |
 | Players | `POST /jogos/{id}/jogadores` | Join a side (`tipoId` 0, human) |
 | Players | `DELETE /jogos/{id}/jogadores/{ladoId}` | Resign |
@@ -215,17 +234,17 @@ The API uses Portuguese identifiers. The frontend keeps them on the wire and in 
 | Vitória: Preto | Black wins |
 | Empate: Regra 50 movimentos | Draw: 50-move rule |
 | Empate: Insuficiência material | Draw: insufficient material |
+| Empate: Tempo esgotado sem material | Draw: time out and the other side cannot checkmate |
 | Empate: Rei afogado | Draw: stalemate |
 | Empate: Comum acordo | Draw: by agreement |
 | Empate: Regra das 3 posições | Draw: threefold repetition |
 | Desistência: Um jogador deixou a partida | Resignation: a player left the game |
-| Tempo esgotado: o tempo de um jogador acabou | Time out: a player ran out of time |
 
 Move names are shown as "Short castling", "Long castling", "Pawn double step", "Pawn promotion", "En passant", "Knight move". Each language has its own names for these values.
 
 ### 6.3 URLs
 
-Route paths are in English (`promote-pawn`, `end-game`, `answer-proposal`). The side query parameter is `side`. Links made with the previous paths do not work any more.
+Route paths are in English (`promote-pawn`, `end-game`, `answer-proposal`, `review`). The side query parameter is `side`. Links made with the previous paths do not work any more.
 
 ## 7. Socket events
 
@@ -249,6 +268,7 @@ The socket is closed when the screen is left.
 - A failed request shows its error with a browser alert. Errors without a server message say "Unexpected error. Please try again." or "Could not reach the server. Please try again later.", in the selected language. The same goes for the two configuration errors (no API address, or an answer that is not JSON).
 - A failed load of the game sends the player to Home.
 - A failed load of free sides sends the player to Home.
+- A failed load of a game to review sends the viewer to Home.
 - Actions that fail keep the player on the screen and reload the game where that makes sense.
 - While an action is running, the screen shows the spinner in place of the content.
 

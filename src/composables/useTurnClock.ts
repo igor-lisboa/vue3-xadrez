@@ -16,15 +16,19 @@ export function useTurnClock(summary: Ref<GameSummary | null>, onExpired: () => 
       if (!current) {
         return
       }
-      whiteMs.value = current.ladoBrancoTempoMilisegundosRestante ?? 0
-      blackMs.value = current.ladoPretoTempoMilisegundosRestante ?? 0
+      // The API stops both clocks when the game ends and shows 0 for a side that ran out.
+      whiteMs.value = Math.max(0, current.ladoBrancoTempoMilisegundosRestante ?? 0)
+      blackMs.value = Math.max(0, current.ladoPretoTempoMilisegundosRestante ?? 0)
     },
     { immediate: true },
   )
 
+  /** A finished game keeps the times the server sent, so nothing counts down after the end. */
   function isCounting(current: GameSummary): boolean {
     return (
-      current.tempoDeTurnoEmMilisegundos !== NO_TIME_LIMIT && current.ladosIdDeslogados.length === 0
+      current.tempoDeTurnoEmMilisegundos !== NO_TIME_LIMIT &&
+      current.ladosIdDeslogados.length === 0 &&
+      current.finalizado === null
     )
   }
 

@@ -5,7 +5,9 @@ import GameView from '@/views/GameView.vue'
 import PromotePawnView from '@/views/PromotePawnView.vue'
 import EndGameView from '@/views/EndGameView.vue'
 import AnswerProposalView from '@/views/AnswerProposalView.vue'
+import GameReviewView from '@/views/GameReviewView.vue'
 import type { SideId } from '@/api/types/enums'
+import { WHITE } from '@/domain/constants'
 import { parseSideId } from './params'
 import { requireGameAndSide, requireGameId, requireProposalType } from './guards'
 
@@ -58,6 +60,17 @@ export const routes: RouteRecordRaw[] = [
     props: (route) => ({
       ...sideRouteProps(route),
       proposalType: route.params.type as 'tie' | 'reset',
+    }),
+  },
+  {
+    // Open to anyone: the side only turns the board, so a missing or wrong one shows White's view.
+    path: '/game/:id/review',
+    name: 'gameReview',
+    component: GameReviewView,
+    beforeEnter: (to) => requireGameId(to.params),
+    props: (route) => ({
+      gameId: Number(route.params.id),
+      sideId: parseSideId(route.query.side) ?? WHITE,
     }),
   },
   { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },

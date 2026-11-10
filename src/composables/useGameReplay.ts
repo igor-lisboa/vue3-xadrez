@@ -2,12 +2,13 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
 import { getGameHistory } from '@/api/services/games'
 import type { PieceType, Square } from '@/api/types/catalogue'
-import type { SideId } from '@/api/types/enums'
+import type { EndingLabel, SideId } from '@/api/types/enums'
 import { createBoardHouses } from '@/domain/board'
 import { markPlayedMove } from '@/domain/highlights'
+import { explainMaterialDraw } from '@/domain/material'
 import { orientForSide } from '@/domain/orientation'
 import { buildReplay, type GameReplay } from '@/domain/replay'
-import { useLoader } from './useRequest'
+import { useLoader, type LoaderOptions } from './useRequest'
 
 /** Keys that step through the replay, with the step they ask for. */
 const KEY_STEPS = {
@@ -26,18 +27,42 @@ function isFormControl(target: EventTarget | null): boolean {
   )
 }
 
+/** What the review shows of a game besides its positions. */
+interface ReviewedGame {
+  replay: GameReplay
+  ending: EndingLabel | null
+  sideOnMove: SideId
+}
+
 /**
- * Review of a finished game: loads its moves and lets the player step through the positions,
+ * Review of a game: loads its moves and lets the viewer step through the positions,
  * with the buttons, the move list or the keyboard (left and right arrows, Home and End).
- * It opens on the final position, so the player first sees how the game ended.
+ * It opens on the final position, so the viewer first sees how the game ended.
+ * `sideId` only turns the board.
  */
-export function useGameReplay(gameId: number, sideId: SideId) {
+export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOptions = {}) {
   const { data: squares } = useLoader<Square[]>(listSquares, [])
   const { data: pieces } = useLoader<PieceType[]>(listPieceTypes, [])
-  const { data: replay, loading } = useLoader<GameReplay | null>(
-    async () => buildReplay(await getGameHistory(gameId)),
+  const { data: game, loading } = useLoader<ReviewedGame | null>(
+    async () => {
+      const history = await getGameHistory(gameId)
+      return {
+        replay: buildReplay(history),
+        ending: history.finalizado?.tipo ?? null,
+        sideOnMove: history.ladoIdAtual,
+      }
+    },
     null,
+    options,
   )
+  const replay = computed(() => game.value?.replay ?? null)
+  const ending = computed(() => game.value?.ending ?? null)
+  /** Why an insufficient-material draw happened, read from the final position. */
+  const material = computed(() => {
+    const reviewed = game.value
+    const finalCells = reviewed?.replay.positions.at(-1)
+    return reviewed && finalCells ? explainMaterialDraw({ ...reviewed, cells: finalCells }) : null
+  })
 
   /** The step the player chose; null follows the last position until the player moves. */
   const chosenStep = ref<number | null>(null)
@@ -88,6 +113,8 @@ export function useGameReplay(gameId: number, sideId: SideId) {
 
   return {
     replay,
+    ending,
+    material,
     loading,
     houses,
     step,
