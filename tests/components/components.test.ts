@@ -9,6 +9,7 @@ import ClockPanel from '@/components/game/ClockPanel.vue'
 import GameActions from '@/components/game/GameActions.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import LanguageSelect from '@/components/layout/LanguageSelect.vue'
+import MaterialSummary from '@/components/game/MaterialSummary.vue'
 import { createBoardHouses } from '@/domain/board'
 import { en } from '@/i18n/messages/en'
 import { pieceTypes, squares } from '../helpers/fixtures'
@@ -126,7 +127,6 @@ describe('ChessBoard', () => {
         moveLabels: en.labels.moves,
       },
     })
-    expect(wrapper.find('.piece-sprite').html()).toContain('id="wk"')
     const cells = wrapper.findAll('.board-house')
     expect(cells[0]?.find('use').attributes('href')).toBe('#wk')
     expect(cells[1]?.find('use').exists()).toBe(false)
@@ -198,6 +198,51 @@ describe('GameActions', () => {
     await buttons[1]!.trigger('click')
     expect(wrapper.emitted('resign')).toHaveLength(1)
     expect(wrapper.emitted('proposeDraw')).toHaveLength(1)
+  })
+})
+
+describe('MaterialSummary', () => {
+  const labels = { ...en.material, sides: en.labels.sides, pieces: en.labels.pieces }
+
+  it('names the side that ran out of time and the pieces of each side', () => {
+    const wrapper = mount(MaterialSummary, {
+      props: {
+        labels,
+        report: {
+          cause: { kind: 'timeOut', sideId: 0 },
+          sides: [
+            { sideId: 0, pieces: ['Rei'], canCheckmate: false },
+            { sideId: 1, pieces: ['Rei', 'Torre'], canCheckmate: true },
+          ],
+        },
+      },
+    })
+    expect(wrapper.find('.lead').text()).toBe('White ran out of time.')
+    const black = wrapper.findAll('li')[1]!
+    expect(black.find('.badge').classes()).toContain('bg-success')
+    expect(black.find('.badge').text()).toBe('Can checkmate')
+    expect(black.find('[role="img"]').attributes('aria-label')).toBe('King, Rook')
+    expect(black.findAll('.piece-slot').map((slot) => slot.attributes('title'))).toEqual([
+      'King',
+      'Rook',
+    ])
+  })
+
+  it('blames the material when it is the cause', () => {
+    const wrapper = mount(MaterialSummary, {
+      props: {
+        labels,
+        report: {
+          cause: { kind: 'material' },
+          sides: [
+            { sideId: 0, pieces: ['Rei'], canCheckmate: false },
+            { sideId: 1, pieces: ['Rei'], canCheckmate: false },
+          ],
+        },
+      },
+    })
+    expect(wrapper.find('.lead').text()).toBe(labels.noMaterial)
+    expect(wrapper.findAll('.badge.bg-secondary')).toHaveLength(2)
   })
 })
 

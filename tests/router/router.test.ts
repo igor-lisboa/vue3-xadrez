@@ -75,6 +75,19 @@ describe('route props and guards', () => {
     })
   })
 
+  it('give the review its game and turn the board to White unless the link asks for Black', () => {
+    const review = findRoute('gameReview')
+    expect(review.props({ params: { id: '5' }, query: { side: '1' } })).toEqual({
+      gameId: 5,
+      sideId: 1,
+    })
+    expect(review.props({ params: { id: '5' }, query: {} })).toEqual({ gameId: 5, sideId: 0 })
+    expect(review.props({ params: { id: '5' }, query: { side: '9' } })).toEqual({
+      gameId: 5,
+      sideId: 0,
+    })
+  })
+
   it('run the guards of each route', () => {
     const guard = (name: string, params: Record<string, unknown>) =>
       (
@@ -85,6 +98,8 @@ describe('route props and guards', () => {
     expect(guard('promotePawn', { id: '1', sideId: '5' })).toEqual({ name: 'home' })
     expect(guard('endGame', { id: '1', sideId: '1' })).toBe(true)
     expect(guard('answerProposal', { id: '1', sideId: '1', type: 'tie' })).toBe(true)
+    expect(guard('gameReview', { id: '1' })).toBe(true)
+    expect(guard('gameReview', { id: 'x' })).toEqual({ name: 'home' })
   })
 
   it('send unknown paths home', () => {

@@ -1,5 +1,5 @@
 import type { Square } from './catalogue'
-import type { MoveName, PieceName, SideId } from './enums'
+import type { EndingLabel, MoveName, PieceName, SideId } from './enums'
 
 /**
  * Piece as GET /jogos/{id} sends it. Only the fields the replay reads are typed.
@@ -28,10 +28,15 @@ interface PlayedSide {
   jogadasRealizadas: PlayedMove[]
 }
 
-/** The parts of the full game (GET /jogos/{id}) that the game review reads. */
+/** The parts of the full game (GET /jogos/{id}) that the game review reads; the type is partial. */
 export interface GameHistorySource {
   id: number
   ladoBranco: PlayedSide
   ladoPreto: PlayedSide
   tabuleiro: { casas: (PlayedPiece | null)[][] }
+  ladoIdAtual: SideId
+  /** Turn time limit in milliseconds, -1 when the game has no limit. */
+  tempoDeTurnoEmMilisegundos: number
+  /** How the game ended, or null while it is still being played. */
+  finalizado: { tipo: EndingLabel } | null
 }

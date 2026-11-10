@@ -49,11 +49,13 @@ function cellOf(name: PieceName, sideId: SideId): SimplifiedCell {
   return `${name}-${sideId}`
 }
 
-function pieceNameOf(cell: SimplifiedCell): PieceName {
+/** Piece name of a board cell, for example `Rei` for `Rei-0`. */
+export function pieceNameOf(cell: SimplifiedCell): PieceName {
   return cell.split('-')[0] as PieceName
 }
 
-function sideOf(cell: SimplifiedCell): SideId {
+/** Side of a board cell, for example 1 for `Rei-1`. */
+export function sideOf(cell: SimplifiedCell): SideId {
   return cell.endsWith(`-${BLACK}`) ? BLACK : WHITE
 }
 

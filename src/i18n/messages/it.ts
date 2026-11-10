@@ -21,6 +21,8 @@ export const it: Messages = {
     or: 'OPPURE',
     enterRoom: 'Entra in una stanza',
     roomPrompt: 'In quale stanza vuoi entrare?',
+    reviewGame: 'Rivedi una partita',
+    reviewPrompt: 'Qual è il numero della stanza della partita da rivedere?',
     shiftTimes: {
       five: '5 minuti',
       ten: '10 minuti',
@@ -52,19 +54,29 @@ export const it: Messages = {
   },
   endGame: {
     proposeReset: 'Proponi reset',
-    review: {
-      title: 'Revisione della partita',
-      moveList: 'Mosse della partita',
-      first: 'Posizione iniziale',
-      previous: 'Mossa precedente',
-      next: 'Mossa successiva',
-      last: 'Posizione finale',
-      position: (step, total) => `Mossa ${step} di ${total}`,
-      startPosition: 'Posizione iniziale',
-      noMoves: 'In questa partita non è stata giocata nessuna mossa.',
-      unavailable:
-        'Le mosse di questa partita non si possono riprodurre, quindi la scacchiera mostra solo la posizione finale.',
-    },
+    reviewGame: 'Rivedi la partita',
+  },
+  material: {
+    title: 'Pezzi rimasti',
+    noMaterial: 'Nessuno dei due ha abbastanza pezzi per dare scacco matto.',
+    timeOut: { 0: 'Il Bianco ha esaurito il tempo.', 1: 'Il Nero ha esaurito il tempo.' },
+    canCheckmate: 'Può dare scacco matto',
+    cannotCheckmate: 'Non può dare scacco matto',
+  },
+  review: {
+    title: 'Revisione della partita',
+    room: (gameId) => `Stanza ${gameId}`,
+    inProgress: 'Partita in corso',
+    moveList: 'Mosse della partita',
+    first: 'Posizione iniziale',
+    previous: 'Mossa precedente',
+    next: 'Mossa successiva',
+    last: 'Posizione finale',
+    position: (step, total) => `Mossa ${step} di ${total}`,
+    startPosition: 'Posizione iniziale',
+    noMoves: 'In questa partita non è stata giocata nessuna mossa.',
+    unavailable:
+      'Le mosse di questa partita non si possono riprodurre, quindi la scacchiera mostra solo la posizione finale.',
   },
   game: {
     resign: 'Abbandona',

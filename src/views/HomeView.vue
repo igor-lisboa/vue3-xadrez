@@ -42,10 +42,22 @@ async function createGameWithType(type: GameTypeId): Promise<void> {
   await router.push({ name: 'selectSide', params: { id: created.id } })
 }
 
+/** Asks for a room number; an empty answer or Cancel gives undefined. */
+function askRoom(prompt: string): string | undefined {
+  return askText(prompt)?.trim() || undefined
+}
+
 function enterRoom(): void {
-  const roomId = askText(messages.value.home.roomPrompt)?.trim()
+  const roomId = askRoom(messages.value.home.roomPrompt)
   if (roomId) {
     void router.push({ name: 'selectSide', params: { id: roomId } })
+  }
+}
+
+function reviewGame(): void {
+  const roomId = askRoom(messages.value.home.reviewPrompt)
+  if (roomId) {
+    void router.push({ name: 'gameReview', params: { id: roomId } })
   }
 }
 </script>
@@ -72,6 +84,9 @@ function enterRoom(): void {
 
     <hr />
     <h2>{{ messages.home.or }}</h2>
-    <ActionButton class="mt-3" @click="enterRoom">{{ messages.home.enterRoom }}</ActionButton>
+    <div class="d-flex flex-wrap justify-content-center gap-3 mt-3">
+      <ActionButton @click="enterRoom">{{ messages.home.enterRoom }}</ActionButton>
+      <ActionButton @click="reviewGame">{{ messages.home.reviewGame }}</ActionButton>
+    </div>
   </template>
 </template>

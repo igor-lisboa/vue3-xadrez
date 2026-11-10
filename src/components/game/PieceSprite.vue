@@ -2,7 +2,8 @@
 import pieceSprite from '@/assets/pieces/standard.svg?raw'
 
 /**
- * Defines the piece drawings once per board. `ChessPiece` points at them by id.
+ * Defines the piece drawings once for the whole app (it is mounted in `App.vue`), so the board
+ * and any other list of pieces share them. `ChessPiece` points at them by id.
  * The sprite is a static file from this app, so injecting it as HTML is safe.
  */
 </script>
@@ -12,7 +13,7 @@ import pieceSprite from '@/assets/pieces/standard.svg?raw'
 </template>
 
 <style scoped>
-/* Kept in the layout, but at zero size, so the sprite never shows or moves the squares. */
+/* Kept in the page, but at zero size, so the sprite never shows or moves the layout. */
 .piece-sprite {
   position: absolute;
   width: 0;

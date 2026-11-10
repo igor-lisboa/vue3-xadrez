@@ -149,6 +149,19 @@ describe('HomeView', () => {
     await enter.trigger('click')
     expect(push).not.toHaveBeenCalled()
   })
+
+  it('opens the review of the room typed by the player', async () => {
+    vi.mocked(askText).mockReturnValueOnce(' 12 ').mockReturnValueOnce('').mockReturnValueOnce(null)
+    const wrapper = mount(HomeView)
+    await settle()
+    const review = wrapper.findAll('button').find((button) => button.text() === 'Review a game')!
+    await review.trigger('click')
+    expect(askText).toHaveBeenCalledWith('Enter the room number of the game you want to review.')
+    expect(push).toHaveBeenCalledWith({ name: 'gameReview', params: { id: '12' } })
+    await review.trigger('click')
+    await review.trigger('click')
+    expect(push).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('SelectSideView', () => {

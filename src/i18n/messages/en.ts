@@ -21,6 +21,8 @@ export const en: Messages = {
     or: 'OR',
     enterRoom: 'Enter a room',
     roomPrompt: 'Which room do you want to enter?',
+    reviewGame: 'Review a game',
+    reviewPrompt: 'Enter the room number of the game you want to review.',
     shiftTimes: {
       five: '5 minutes',
       ten: '10 minutes',
@@ -52,19 +54,29 @@ export const en: Messages = {
   },
   endGame: {
     proposeReset: 'Propose reset',
-    review: {
-      title: 'Game review',
-      moveList: 'Moves of the game',
-      first: 'Starting position',
-      previous: 'Previous move',
-      next: 'Next move',
-      last: 'Final position',
-      position: (step, total) => `Move ${step} of ${total}`,
-      startPosition: 'Starting position',
-      noMoves: 'No moves were played in this game.',
-      unavailable:
-        'The moves of this game cannot be replayed, so the board shows the final position only.',
-    },
+    reviewGame: 'Review game',
+  },
+  material: {
+    title: 'Pieces left',
+    noMaterial: 'Neither side has enough pieces left to checkmate.',
+    timeOut: { 0: 'White ran out of time.', 1: 'Black ran out of time.' },
+    canCheckmate: 'Can checkmate',
+    cannotCheckmate: 'Cannot checkmate',
+  },
+  review: {
+    title: 'Game review',
+    room: (gameId) => `Room ${gameId}`,
+    inProgress: 'Game in progress',
+    moveList: 'Moves of the game',
+    first: 'Starting position',
+    previous: 'Previous move',
+    next: 'Next move',
+    last: 'Final position',
+    position: (step, total) => `Move ${step} of ${total}`,
+    startPosition: 'Starting position',
+    noMoves: 'No moves were played in this game.',
+    unavailable:
+      'The moves of this game cannot be replayed, so the board shows the final position only.',
   },
   game: {
     resign: 'Resign',

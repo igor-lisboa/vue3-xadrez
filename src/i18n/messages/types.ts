@@ -33,6 +33,8 @@ export interface Messages {
     or: string
     enterRoom: string
     roomPrompt: string
+    reviewGame: string
+    reviewPrompt: string
     shiftTimes: Record<ShiftTimeKey, string>
   }
   selectSide: {
@@ -54,19 +56,30 @@ export interface Messages {
   }
   endGame: {
     proposeReset: string
-    /** Review of the finished game: the board and the list of moves. */
-    review: {
-      title: string
-      moveList: string
-      first: string
-      previous: string
-      next: string
-      last: string
-      position: (step: number, total: number) => string
-      startPosition: string
-      noMoves: string
-      unavailable: string
-    }
+    reviewGame: string
+  }
+  /** Details of an insufficient-material draw: why it happened and the pieces left. */
+  material: {
+    title: string
+    noMaterial: string
+    timeOut: Record<SideId, string>
+    canCheckmate: string
+    cannotCheckmate: string
+  }
+  /** Game review screen: the board and the list of moves of a game. */
+  review: {
+    title: string
+    room: (gameId: number) => string
+    inProgress: string
+    moveList: string
+    first: string
+    previous: string
+    next: string
+    last: string
+    position: (step: number, total: number) => string
+    startPosition: string
+    noMoves: string
+    unavailable: string
   }
   game: {
     resign: string

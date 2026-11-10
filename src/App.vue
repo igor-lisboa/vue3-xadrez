@@ -2,6 +2,7 @@
 import LanguageSelect from '@/components/layout/LanguageSelect.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import InstallAppButton from '@/components/layout/InstallAppButton.vue'
+import PieceSprite from '@/components/game/PieceSprite.vue'
 import { env } from '@/config/env'
 import { useInstallPrompt } from '@/composables/useInstallPrompt'
 import { useLocale } from '@/composables/useLocale'
@@ -19,6 +20,7 @@ function onLanguageChange(value: string): void {
 
 <template>
   <div class="d-flex h-100 text-center text-white bg-dark">
+    <PieceSprite />
     <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
       <header class="mb-auto d-flex justify-content-between align-items-start">
         <router-link :to="{ name: 'home' }">

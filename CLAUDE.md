@@ -51,7 +51,7 @@ Node 20.19+ or 22.12+ is required.
 
 ## Testing
 
-- Every change ships with tests. Tests mirror `src/`: `tests/domain`, `tests/api`, `tests/composables`, `tests/components`, `tests/views`, `tests/router`, `tests/services`, `tests/i18n`. `tests/tooling` checks the skill and agent files.
+- Every change ships with tests. Tests mirror `src/`: `tests/domain`, `tests/api`, `tests/composables`, `tests/components`, `tests/views`, `tests/router`, `tests/services`, `tests/i18n`, `tests/styles` (global CSS and `index.html`). `tests/tooling` checks the skill and agent files.
 - Domain functions are tested as pure functions. Services are tested with `http` mocked. Composables and views are tested with services and `vue-router` mocked (see `tests/views/*.test.ts` for the pattern) and with `runComposable` (`tests/helpers/run-composable.ts`) when lifecycle hooks are needed.
 - Watchers flush asynchronously: `await nextTick()` before asserting on state that a watcher updates.
 - Use fake timers for the clock (`vi.useFakeTimers()`).
@@ -62,7 +62,8 @@ Node 20.19+ or 22.12+ is required.
 
 - **Screen rules** are decided by `resolveGameScreen` (`src/domain/game-screen.ts`). The priority order is documented there and tested. Change the order only with a spec update.
 - **Board** is built from the summary in `createBoardHouses`. The board is oriented for Black by reversing both the squares and the cells (`orientForSide`).
-- **Game review** is on the End game screen. `useGameReplay` loads `GET /jogos/{id}` and `buildReplay` (`src/domain/replay.ts`) rebuilds every position from the move lists, because the API keeps no snapshots. A replay that does not end on the API's final board is discarded and only the final position is shown. Shared fixtures for it are in `tests/helpers/history.ts`.
+- **Game review** is its own screen (`/game/:id/review`, `GameReviewView`), open to anyone with the room number; End game and Home link to it. `useGameReplay` loads `GET /jogos/{id}` and `buildReplay` (`src/domain/replay.ts`) rebuilds every position from the move lists, because the API keeps no snapshots. A replay that does not end on the API's final board is discarded and only the final position is shown. Shared fixtures for it are in `tests/helpers/history.ts`.
+- **Insufficient-material draw** details come from `explainInsufficientMaterial` (`src/domain/material.ts`). It repeats the backend's material rule only to tell a material draw from a time out, which the API reports with the same result; it never decides a result.
 - **Board selection** is in `useChessBoard`: first click selects and fetches moves, a click on a highlighted square plays the move, then the game is reloaded.
 - **Clock** runs in the browser in `useTurnClock`; the server stays the source of truth. When a side reaches zero, the game is reloaded.
 - **Socket** (`useGameSocket`) maps game events to handlers by semantic name. The wire names are in `src/api/socket-events.ts`.

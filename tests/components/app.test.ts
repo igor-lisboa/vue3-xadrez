@@ -20,6 +20,12 @@ describe('App', () => {
     expect(wrapper.find('footer').exists()).toBe(true)
   })
 
+  it('defines the piece pictures once for every screen', () => {
+    const wrapper = mount(App, { global: { stubs } })
+    expect(wrapper.findAll('.piece-sprite')).toHaveLength(1)
+    expect(wrapper.find('.piece-sprite').html()).toContain('id="wk"')
+  })
+
   it('offers the six languages and changes the texts when one is chosen', async () => {
     const wrapper = mount(App, { global: { stubs } })
     const select = wrapper.find('select')
