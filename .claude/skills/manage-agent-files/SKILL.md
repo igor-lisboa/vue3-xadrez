@@ -37,6 +37,6 @@ Instruction files are written by hand: `CLAUDE.md` (full rules), `AGENTS.md` (su
 
 - `npm run sync:agents` writes the generated files and removes generated files whose source is gone.
 - `npm run check:agents` writes nothing and exits 1 when a generated file is missing, out of date or stale. `npm test` runs the same comparison through `tests/tooling/agent-files.test.ts`.
-- Commit the canonical and the generated files together.
+- The canonical and the generated files go in the same commit. The user makes it (see "Git" in `CLAUDE.md`).
 
 Never edit a generated file by hand: the next run overwrites it.

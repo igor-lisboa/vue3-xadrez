@@ -76,8 +76,17 @@ Node 20.19+ or 22.12+ is required.
 - The API has no OpenAPI entry for socket events; they are documented in the spec and in `socket-events.ts`.
 - URLs changed in the refactor (English paths). Bookmarks to the old Portuguese paths do not work.
 
+## Git
+
+AI agents (Claude Code, Codex, Copilot and their subagents) run **read-only** git commands only. Commands that change the repository or the remote are run by the user, a real person.
+
+- Allowed: `git status`, `diff`, `log`, `show`, `blame`, `ls-files`, `rev-parse`, `branch --list`, `remote -v`, and other commands that only read.
+- Not allowed: `git add`, `commit`, `push`, `pull`, `fetch`, `checkout`, `switch`, `branch` (create, rename, delete), `merge`, `rebase`, `reset`, `restore`, `revert`, `stash`, `tag`, `cherry-pick`, `mv`, `rm`, `clean`, `config`, and anything else that changes the index, the working tree through git, refs, history, the config or the remote.
+- When the work needs one of these, give the user the exact commands to run (for example the branch to create, the files to stage and the commit message) and stop there.
+- The only exception: the user explicitly tells the agent, in the current message, to run that command. The permission covers that one time; it does not carry over to later tasks. A request such as "give me a commit" or "give me a commit title" asks for the text, not for the command to be run.
+
 ## Workflow
 
-- Work on a branch. The default branch is `main`. Do not commit or push unless the user asks.
+- Work on a branch. The default branch is `main`. The user creates the branch, commits and pushes (see Git below).
 - For new features, update `docs/specs/frontend.md` first, then code, then tests.
 - Use the skills (common recipes) and the agents (review, tests) of the project. They are shared by Claude Code, Codex and Copilot: edit only the canonical files in `.agents/skills/` and `.agents/agents/`, then run `npm run sync:agents` to regenerate `.claude/`, `.github/agents/` and `.codex/agents/` (`npm run check:agents` verifies them; see the `manage-agent-files` skill).

@@ -20,4 +20,4 @@ Follow this order. Each step has its own file, and each file stays under 300 lin
 9. **Check.** Run `npm run check`. Coverage must stay above the thresholds in `vite.config.ts`.
 10. **Report.** Say which spec sections changed and which files were added.
 
-Do not commit unless the user asks.
+Do not run git commands that change the repository; give the user the commands to run (see "Git" in `CLAUDE.md`).
