@@ -29,9 +29,26 @@ const groupId = useId()
 </template>
 
 <style scoped>
-/* Options wrap onto a second line when the screen is too narrow for them all. */
+/* Options sit side by side on wider screens and wrap when they do not fit. */
 .choice-group {
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* On phones the joined buttons wrap their labels onto ragged rows, so each option gets its own full-width line. */
+@media (max-width: 575.98px) {
+  .choice-group {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  /* Bootstrap joins grouped buttons (squared inner corners, overlapping borders); the stacked options must not. */
+  .choice-group > .btn {
+    width: 100%;
+    margin: 0 !important;
+    border-radius: var(--bs-btn-border-radius) !important;
+  }
 }
 </style>

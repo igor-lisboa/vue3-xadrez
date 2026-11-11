@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import ActionButton from '@/components/common/ActionButton.vue'
 import ChoiceGroup from '@/components/common/ChoiceGroup.vue'
+import choiceGroupSource from '@/components/common/ChoiceGroup.vue?raw'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ChessBoard from '@/components/game/ChessBoard.vue'
 import ChessPiece from '@/components/game/ChessPiece.vue'
@@ -52,6 +53,12 @@ describe('ChoiceGroup', () => {
     })
     await wrapper.findAll('input')[1]!.setValue(true)
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([1])
+  })
+
+  // jsdom does not lay out the page, so the phone rule is checked in the component's stylesheet.
+  it('stacks the options full width below the Bootstrap small breakpoint', () => {
+    expect(choiceGroupSource).toMatch(/@media \(max-width: 575\.98px\)\s*\{[\s\S]*flex-direction: column;/)
+    expect(choiceGroupSource).toMatch(/\.choice-group > \.btn \{[^}]*width: 100%;/)
   })
 })
 
