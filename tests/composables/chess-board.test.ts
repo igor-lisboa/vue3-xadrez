@@ -79,6 +79,15 @@ describe('useChessBoard', () => {
     unmount()
   })
 
+  it('selects a piece with no legal move without highlighting any destination', async () => {
+    vi.mocked(listPossibleMoves).mockResolvedValue([])
+    const { result, unmount } = setup()
+    await result.selectHouse(indexOf('E2'))
+    expect(result.houses.value[indexOf('E2')]?.movementOrigin).toBe(true)
+    expect(result.houses.value.some((house) => house.possibleMovement)).toBe(false)
+    unmount()
+  })
+
   it('plays the move when a highlighted square is clicked', async () => {
     vi.mocked(listPossibleMoves).mockResolvedValue([toE4])
     vi.mocked(makeMove).mockResolvedValue(undefined)

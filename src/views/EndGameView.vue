@@ -10,7 +10,7 @@ import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
 import { useLocale } from '@/composables/useLocale'
 import { useRequest } from '@/composables/useRequest'
-import { translateEnding } from '@/domain/labels'
+import { translateEndingHeading } from '@/domain/labels'
 import { explainMaterialDraw } from '@/domain/material'
 import { notify } from '@/services/dialogs'
 
@@ -23,7 +23,12 @@ const proposal = useRequest()
 const busy = computed(() => proposal.pending.value)
 const endingText = computed(() =>
   summary.value?.finalizado
-    ? translateEnding(messages.value.labels.endings, summary.value.finalizado)
+    ? translateEndingHeading(messages.value.labels, {
+        ending: summary.value.finalizado,
+        reason: summary.value.motivoFinalizacao,
+        winner: summary.value.ladoIdVencedor,
+        resigner: summary.value.ladoIdDesistente,
+      })
     : '',
 )
 /** The API names the winner, also after a resignation or a time out; null after a draw. */
@@ -35,6 +40,7 @@ const material = computed(() =>
   summary.value
     ? explainMaterialDraw({
         ending: summary.value.finalizado,
+        reason: summary.value.motivoFinalizacao,
         cells: summary.value.tabuleiro.flat(),
         sideOnMove: summary.value.ladoIdAtual,
       })

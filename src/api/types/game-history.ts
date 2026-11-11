@@ -1,5 +1,6 @@
 import type { Square } from './catalogue'
-import type { EndingLabel, MoveName, PieceName, SideId } from './enums'
+import type { EndingLabel, FinishReason, MoveName, PieceName, SideId } from './enums'
+import type { GameClocks } from './game-summary'
 
 /**
  * Piece as GET /jogos/{id} sends it. Only the fields the replay reads are typed.
@@ -28,8 +29,11 @@ interface PlayedSide {
   jogadasRealizadas: PlayedMove[]
 }
 
-/** The parts of the full game (GET /jogos/{id}) that the game review reads; the type is partial. */
-export interface GameHistorySource {
+/**
+ * The parts of the full game (GET /jogos/{id}) that the game review reads; the type is partial.
+ * The clocks are the time used by each side, which stays the same once the game has ended.
+ */
+export interface GameHistorySource extends GameClocks {
   id: number
   ladoBranco: PlayedSide
   ladoPreto: PlayedSide
@@ -37,6 +41,10 @@ export interface GameHistorySource {
   ladoIdAtual: SideId
   /** How the game ended, or null while it is still being played. */
   finalizado: { tipo: EndingLabel } | null
-  /** The side that won, or null while the game runs and after a draw. */
+  /** Why the game ended, or null while it is still being played. */
+  motivoFinalizacao: FinishReason | null
+  /** The side that won, or null while the game runs and after every draw. */
   ladoIdVencedor: SideId | null
+  /** The side that resigned, when motivoFinalizacao is "desistencia"; null otherwise. */
+  ladoIdDesistente: SideId | null
 }

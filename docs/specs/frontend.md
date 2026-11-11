@@ -13,7 +13,7 @@ A browser client for a chess game. A player:
 2. takes a side (White or Black), unless the game was created against the AI,
 3. plays moves, offers, answers or claims draws, offers or answers resets, promotes pawns, and may resign.
 
-The frontend holds no game rules of its own. The API decides what is legal, what has ended, who won, and when a draw can be claimed, following the FIDE Laws of Chess. The frontend only shows the state (`finalizado`, `ladoIdVencedor`, `empateReivindicavel`) and sends the player's actions. It has no copy of any draw, repetition or insufficient-material rule.
+The frontend holds no game rules of its own. The API decides what is legal, what has ended, who won, and when a draw can be claimed, following the FIDE Laws of Chess. The frontend only shows the state (`finalizado`, `motivoFinalizacao`, `ladoIdVencedor`, `empateReivindicavel`) and sends the player's actions. It has no copy of any draw, repetition or insufficient-material rule.
 
 Anyone who knows a room number can also review that game's moves, without taking a side.
 
@@ -21,7 +21,7 @@ Anyone who knows a room number can also review that game's moves, without taking
 
 | Screen | Route | Purpose |
 | --- | --- | --- |
-| Home | `/` | Choose player types and turn time, create a game, enter a room, or review a game |
+| Home | `/` | Choose player types and time per side, create a game, enter a room, or review a game |
 | Select side | `/game/:id?side=0\|1` | Choose a free side of a game and join it |
 | Game | `/game/:id/side/:sideId` | Board, clocks and actions |
 | Promote pawn | `/game/:id/side/:sideId/promote-pawn` | Choose the piece for a promoted pawn |
@@ -54,8 +54,8 @@ Texts quoted in this section are the English versions. Each language shows its o
 ### 3.1 Home
 
 - Loads the game types from the API (Human X Human, Human X AI, AI X AI). The label of each button is built from the player types of the two sides.
-- A turn-time selector sits above the buttons. Options: 5 (default), 10, 15 minutes. Games without a time limit are not offered. The selected value is sent as `tempoDeTurnoEmMilisegundos`.
-- Clicking a game type creates a game with that type and the selected turn time:
+- A time selector sits above the buttons. Options: 5 (default), 10, 15 minutes per side, which is the time each side has for the whole game, not a limit per turn. Games without a time limit are not offered. The selected value is sent as `tempoTotalPorLadoEmMilisegundos` (the deprecated `tempoDeTurnoEmMilisegundos` is no longer sent).
+- Clicking a game type creates a game with that type and the selected time:
   - AI X AI: opens the game directly, as side 0 (White).
   - Any other type: opens Select side for the new game.
 - "Enter a room": asks for a game id in a browser prompt. An empty answer or Cancel does nothing. A non-empty answer opens Select side for that id; an id that is not a non-negative integer sends the player back to Home (section 2).
@@ -125,9 +125,10 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 
 ### 3.5 End game
 
-- Heading: the result of the game in the language in use (see section 6.2).
+- Heading: the result of the game in the language in use (see section 6.2). The API uses the same ending for a checkmate and for a time out ("Vitória: Preto"), so the heading uses `motivoFinalizacao` as well: "Black wins by checkmate", or "Black wins: White ran out of time" for a time out. A resignation names the side that resigned from `ladoIdDesistente`, which the frontend never works out from the winner: "Black wins: White resigned". A resignation that ends as a draw (ending "Empate: Insuficiência material", reason `desistencia`, `ladoIdVencedor` null) is "Draw: White resigned, but Black had no material to checkmate". If `ladoIdDesistente` is missing, the heading shows the ending label and names nobody. A null or unknown reason also shows the ending label.
 - **Winner.** Under the heading, "Winner: White" or "Winner: Black", from the API's `ladoIdVencedor`, also after a resignation (the opponent wins) or a time out. A draw shows no winner. The winner is never worked out from the ending label.
-- **Details of a material draw.** The API ends a game as "Draw: insufficient material" when neither side can checkmate, and as "Draw: time out and the other side cannot checkmate" when the side on the move runs out of time and the other side cannot checkmate. A time out that the other side can convert is a win for that side, so it shows no details. For these two results only, the screen shows, under the heading:
+- **Time used.** Not shown on this screen; see the game review (section 3.7).
+- **Details of a material draw.** The API ends a game as "Draw: insufficient material" when neither side can checkmate, and as "Draw: time out and the other side cannot checkmate" when the side on the move runs out of time and the other side cannot checkmate. A time out that the other side can convert is a win for that side, so it shows no details. A resignation that ends as a draw shows no details either: the side that resigned may still have pieces. For these two results only, the screen shows, under the heading:
   - **The cause**: "Neither side has enough pieces left to checkmate." or "White ran out of time." (or Black).
   - **The pieces left**, one line per side: the side's name and the pieces as pictures (King first, then Queen, Rook, Bishop, Knight, Pawn), named for screen readers.
   - **How the cause is found.** The cause comes from the ending the API chose; the frontend does not judge which pieces can checkmate (the API decides, and for example king and two knights against a bare king is not a draw). The cause of a time-out draw is the side on the move, which is the side that ran out of time. The clocks are not read, because the API keeps the time of the side on the move after the game has ended.
@@ -149,7 +150,8 @@ When the game is loaded, the frontend asks the API to run the AI (`GET /ia`). A 
 
 Lets anyone who knows the room number see how a game went, step by step. It is opened from End game (**Review game**) or from Home (**Review a game**). The viewer takes no side and cannot change the game.
 
-- **Heading**: "Game review", then a line with the room, the result and, when the API names one (`ladoIdVencedor`), the winner: "Room 7 · Black wins · Winner: Black", "Room 7 · Draw: dead position", or "Room 7 · Game in progress" for a game that has not finished. A game in progress shows the moves played up to the moment the screen opened; it does not follow new moves.
+- **Heading**: "Game review", then a line with the room, the result (the same heading as section 3.5) and, when the API names one (`ladoIdVencedor`), the winner: "Room 7 · Black wins by checkmate · Winner: Black", "Room 7 · Draw: dead position", or "Room 7 · Game in progress" for a game that has not finished. A game in progress shows the moves played up to the moment the screen opened; it does not follow new moves.
+- **Time used**: under the heading, one line per side with the time it used in the game, from `ladoBrancoTempoMilisegundosGasto` and `ladoPretoTempoMilisegundosGasto`: "Time used (White): 00:12:34", "Time used (Black): 00:01:01". These values do not change after the game ends. Time used is shown whether or not the game has a time limit.
 - **Details of a material draw**: the same as on End game (section 3.5).
 - **Board.** Shows the game's **final position** when the screen opens (the current one, for a game in progress), from White's side, or from Black's side when the link has `?side=1` (End game adds the player's side). The board cannot be clicked. The move behind the position is marked with the board colours of section 4: the square the piece left is yellow, the square it reached is green, or red when it captured a piece. Special moves are named in the square tooltip.
 - **Controls.** Four buttons go to the starting position, the previous move, the next move and the final position, and a text shows where the viewer is ("Move 12 of 40", or "Starting position"). A button that cannot go further is disabled. The keys Left, Right, Home and End do the same, except while a form control (such as the language list) has the focus.
@@ -194,9 +196,9 @@ The frontend's services, one file per area under `src/api/services/`:
 | Catalogue | `GET /tabela-equivalencia` | Square names and positions (A8 first) |
 | Catalogue | `GET /tipos-de-peca` | Piece types, to read the pieces of the board |
 | Catalogue | `GET /tipos-de-peca/promocao-peao` | Promotion choices |
-| Games | `POST /jogos` | Create a game |
-| Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state, with `ladoIdVencedor` and `empateReivindicavel` |
-| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`), the winner (`ladoIdVencedor`) and the side on the move, for the game review |
+| Games | `POST /jogos` | Create a game, with `tempoTotalPorLadoEmMilisegundos` |
+| Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state, with the winner (`ladoIdVencedor`), the resigning side (`ladoIdDesistente`), the clocks and `empateReivindicavel` |
+| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`), the reason (`motivoFinalizacao`), the winner, the resigning side, the clocks and the side on the move, for the game review |
 | Games | `GET /jogos/{id}/lado-sem-jogador` | Free sides |
 | Players | `POST /jogos/{id}/jogadores` | Join a side (`tipoId` 0, human) |
 | Players | `DELETE /jogos/{id}/jogadores/{ladoId}` with header `lado` = `ladoId` | Resign |
@@ -217,7 +219,10 @@ Requested actions in a game state (`acoesSolicitadas`): `responderPropostaReset`
 Fields of the game state read for the result and draws:
 
 - `finalizado`: the ending label (one of the 12 of `GET /tipos-de-finalizacao`, ids 0 to 11), or null while the game runs.
-- `ladoIdVencedor`: 0 (White), 1 (Black), or null while the game runs and after a draw.
+- `motivoFinalizacao`: why the game ended (one of the values of `GET /enumeracoes` `motivosFinalizacao`), or null while the game runs. It tells a checkmate from a time out, and a resignation draw from a resignation win. Values the frontend does not know fall back to the ending label.
+- `ladoIdVencedor`: 0 (White), 1 (Black), or null while the game runs and after every draw.
+- `ladoIdDesistente`: the side that resigned (0 or 1), set when `motivoFinalizacao` is `desistencia`, also for a draw; null otherwise. Never inferred from `ladoIdVencedor`.
+- The clocks, in milliseconds, on every game response and on the socket events: `ladoBrancoTempoMilisegundosRestante` and `ladoPretoTempoMilisegundosRestante` (time left, never negative; null when the game has no limit), and `ladoBrancoTempoMilisegundosGasto` and `ladoPretoTempoMilisegundosGasto` (time used). The time limit is `tempoTotalPorLadoEmMilisegundos`: the time per side for the whole game, not a limit per turn, -1 for no limit. An older backend sends only the deprecated `tempoDeTurnoEmMilisegundos`, which has the same value, and the frontend reads that name when the new one is missing.
 - `empatePropostoPeloLadoId`: the side with an open draw offer, or null. An open offer is cleared when the side that received it moves, and when the game ends in any other way.
 - `empateReivindicavel`: true when the side on turn could claim a draw now (threefold repetition or 50-move rule) for the position on the board; always false once the game has ended.
 
@@ -266,6 +271,9 @@ The API uses Portuguese identifiers. The frontend keeps them on the wire and in 
 | Empate: Regra 75 movimentos | Draw: 75-move rule |
 | Empate: Posição morta | Draw: dead position |
 | `ladoIdVencedor` 0 / 1 | Winner: White / Winner: Black |
+| `motivoFinalizacao` with a winner | Heading of the win, for example "Black wins by checkmate" or "Black wins: White ran out of time" (one text per reason in each language) |
+| `motivoFinalizacao` `desistencia` without a winner | "Draw: White resigned, but Black had no material to checkmate" (the names come from `ladoIdDesistente`) |
+| `tempoTotalPorLadoEmMilisegundos` | Time each side has for the whole game: "5 minutes per side" (not a limit per turn) |
 
 Move names are shown as "Short castling", "Long castling", "Pawn double step", "Pawn promotion", "En passant", "Knight move". Each language has its own names for these values.
 
@@ -280,15 +288,17 @@ The socket connects to the API base URL with the query `jogador = "{gameId}-{sid
 | Event | Handled by | Effect |
 | --- | --- | --- |
 | `adversarioEntrou` | Game | Notify the player, reload |
-| `jogadaRealizada` | Game | Reload (this also refreshes `empateReivindicavel`; the payload carries it for the side now on turn, but the frontend reads it from the reloaded state) |
+| `jogadaRealizada` | Game | The clocks in the payload are shown at once, then the game is reloaded (this also refreshes `empateReivindicavel`, which the frontend reads from the reloaded state) |
 | `empateProposto` | Game, End game | Reload (Game); End game returns to Game |
 | `empatePropostoResposta` | Game, End game | Reload (Game); End game returns to Game. Also sent, with no payload, to the proposer when the opponent moved instead of answering |
 | `resetProposto` | Game, End game | Same as `empateProposto` |
 | `resetPropostoResposta` | Game, Answer proposal, End game | Reload (Game, Answer proposal); End game returns to Game |
-| `jogoFinalizado` | Game | Reload. The payload is `{ jogoFinalizacao, ladoIdVencedor }`; the frontend reads both from the reloaded state |
+| `jogoFinalizado` | Game | The clocks in the payload are shown at once, then the game is reloaded. The payload is `{ jogoFinalizacao, motivoFinalizacao, ladoIdVencedor, ladoIdDesistente, and the four clocks }`; the ending texts come from the reloaded state |
 | `uncaughtException` | All game screens | Notify "Connection error with the server." |
 
 The socket is closed when the screen is left.
+
+The events `responderPropostaEmpate`, `responderPropostaReset` and `promocaoPeao` are sent again on every save while they wait. The frontend does not listen to them: a pending answer or promotion is read from `acoesSolicitadas` in the reloaded game, and the screen follows it only when the player is not on it yet (`useGameState`). A repeated event therefore never opens a second screen or dialog.
 
 ## 8. Errors and loading
 

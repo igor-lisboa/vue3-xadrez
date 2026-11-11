@@ -17,16 +17,16 @@ export const de: Messages = {
   },
   home: {
     title: 'Hallo',
-    lead: 'Klicke auf die gewünschte Option für die Spielertypen und die Bedenkzeit.',
+    lead: 'Klicke auf die gewünschte Option für die Spielertypen und die Bedenkzeit je Seite.',
     or: 'ODER',
     enterRoom: 'Raum betreten',
     roomPrompt: 'Welchen Raum möchtest du betreten?',
     reviewGame: 'Eine Partie ansehen',
     reviewPrompt: 'Welche Raumnummer hat die Partie, die du ansehen möchtest?',
     shiftTimes: {
-      five: '5 Minuten',
-      ten: '10 Minuten',
-      fifteen: '15 Minuten',
+      five: '5 Minuten je Seite',
+      ten: '10 Minuten je Seite',
+      fifteen: '15 Minuten je Seite',
     },
   },
   selectSide: {
@@ -75,6 +75,7 @@ export const de: Messages = {
     noMoves: 'In dieser Partie wurde kein Zug gespielt.',
     unavailable:
       'Die Züge dieser Partie lassen sich nicht nachspielen, daher zeigt das Brett nur die Endstellung.',
+    timeUsed: (side, time) => `Verbrauchte Zeit (${side}): ${time}`,
   },
   game: {
     resign: 'Aufgeben',
@@ -118,6 +119,22 @@ export const de: Messages = {
       'Empate: Regra 75 movimentos': 'Remis: 75-Züge-Regel',
       'Empate: Posição morta': 'Remis: tote Stellung',
     },
+    finishReasons: {
+      xequeMate: ({ winner }) => `Sieg für ${winner} durch Schachmatt`,
+      tempoEsgotado: ({ winner, loser }) =>
+        `Sieg für ${winner}: die Zeit von ${loser} ist abgelaufen`,
+      desistencia: ({ winner, loser }) => `Sieg für ${winner}: ${loser} hat aufgegeben`,
+      reiAfogado: ({ winner }) => `Sieg für ${winner}: Patt`,
+      comumAcordo: ({ winner }) => `Sieg für ${winner}: Einigung`,
+      regra50Movimentos: ({ winner }) => `Sieg für ${winner}: 50-Züge-Regel`,
+      regra75Movimentos: ({ winner }) => `Sieg für ${winner}: 75-Züge-Regel`,
+      repeticao3Posicoes: ({ winner }) => `Sieg für ${winner}: dreifache Stellungswiederholung`,
+      repeticao5Posicoes: ({ winner }) => `Sieg für ${winner}: fünffache Stellungswiederholung`,
+      insuficienciaMaterial: ({ winner }) => `Sieg für ${winner}: ungenügendes Material`,
+      posicaoMorta: ({ winner }) => `Sieg für ${winner}: tote Stellung`,
+    },
+    resignationDraw: ({ resigner, other }) =>
+      `Remis: ${resigner} hat aufgegeben, doch ${other} hatte nicht genug Material für Schachmatt`,
     moves: {
       'Roque Menor': 'Kurze Rochade',
       'Roque Maior': 'Lange Rochade',

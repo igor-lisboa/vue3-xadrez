@@ -55,3 +55,20 @@ export type EndingLabel =
   | 'Empate: Regra das 5 posições'
   | 'Empate: Regra 75 movimentos'
   | 'Empate: Posição morta'
+
+/**
+ * Why the game ended (`motivoFinalizacao`). Two endings share a label: a win by checkmate and a
+ * win on time both use "Vitória". The reason tells them apart; null while the game runs.
+ */
+export type FinishReason =
+  | 'xequeMate'
+  | 'tempoEsgotado'
+  | 'desistencia'
+  | 'reiAfogado'
+  | 'comumAcordo'
+  | 'regra50Movimentos'
+  | 'regra75Movimentos'
+  | 'repeticao3Posicoes'
+  | 'repeticao5Posicoes'
+  | 'insuficienciaMaterial'
+  | 'posicaoMorta'

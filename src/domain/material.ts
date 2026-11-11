@@ -1,4 +1,10 @@
-import type { EndingLabel, PieceName, SideId, SimplifiedCell } from '@/api/types/enums'
+import type {
+  EndingLabel,
+  FinishReason,
+  PieceName,
+  SideId,
+  SimplifiedCell,
+} from '@/api/types/enums'
 import { BLACK, WHITE } from './constants'
 import { pieceNameOf, sideOf } from './replay'
 
@@ -27,6 +33,8 @@ export interface MaterialReport {
 /** The facts of the game the report is built from. */
 interface MaterialSource {
   ending: EndingLabel | null
+  /** Why the game ended. A resignation is not explained here: the side that resigned may still have pieces. */
+  reason: FinishReason | null
   /** The final board, in any order. */
   cells: readonly (SimplifiedCell | null)[]
   /** The side that was on the move when the game ended. */
@@ -50,6 +58,9 @@ export function piecesLeft(cells: readonly (SimplifiedCell | null)[], sideId: Si
  */
 export function explainMaterialDraw(source: MaterialSource): MaterialReport | null {
   let cause: MaterialDrawCause
+  if (source.reason === 'desistencia') {
+    return null
+  }
   if (source.ending === MATERIAL_DRAW) {
     cause = { kind: 'material' }
   } else if (source.ending === TIME_OUT_DRAW) {

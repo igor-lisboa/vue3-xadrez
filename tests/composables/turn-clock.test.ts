@@ -31,7 +31,7 @@ describe('useTurnClock', () => {
     const { result, unmount } = setup(
       makeSummary({
         ladoIdAtual: 0,
-        tempoDeTurnoEmMilisegundos: 60000,
+        tempoTotalPorLadoEmMilisegundos: 60000,
         ladoBrancoTempoMilisegundosRestante: 5000,
         ladoPretoTempoMilisegundosRestante: 7000,
       }),
@@ -46,7 +46,7 @@ describe('useTurnClock', () => {
     const { result, unmount } = setup(
       makeSummary({
         ladoIdAtual: 1,
-        tempoDeTurnoEmMilisegundos: 60000,
+        tempoTotalPorLadoEmMilisegundos: 60000,
         ladoBrancoTempoMilisegundosRestante: 5000,
         ladoPretoTempoMilisegundosRestante: 7000,
       }),
@@ -57,10 +57,67 @@ describe('useTurnClock', () => {
     unmount()
   })
 
+  it('reads the time limit under the deprecated name when an older backend sends only that', () => {
+    const older = {
+      ...makeSummary({
+        ladoIdAtual: 0,
+        tempoDeTurnoEmMilisegundos: 60000,
+        ladoBrancoTempoMilisegundosRestante: 5000,
+      }),
+      tempoTotalPorLadoEmMilisegundos: undefined,
+    }
+    const { result, unmount } = setup(older)
+    vi.advanceTimersByTime(1000)
+    expect(result.whiteMs.value).toBe(4000)
+    unmount()
+  })
+
+  it('shows the clocks of an event at once, without waiting for the game to reload', () => {
+    const { result, unmount } = setup(
+      makeSummary({ ladoIdAtual: 0, tempoTotalPorLadoEmMilisegundos: 60000 }),
+    )
+    result.applyClocks({
+      ladoBrancoTempoMilisegundosRestante: 41000,
+      ladoPretoTempoMilisegundosRestante: 52000,
+    })
+    expect(result.whiteMs.value).toBe(41000)
+    expect(result.blackMs.value).toBe(52000)
+    unmount()
+  })
+
+  it('never shows a negative time left from an event', () => {
+    const { result, unmount } = setup(makeSummary())
+    result.applyClocks({
+      ladoBrancoTempoMilisegundosRestante: -250,
+      ladoPretoTempoMilisegundosRestante: 3000,
+    })
+    expect(result.whiteMs.value).toBe(0)
+    expect(result.blackMs.value).toBe(3000)
+    unmount()
+  })
+
+  it('shows zero and does not count for a game with no limit, where time left is null', () => {
+    const { result, unmount } = setup(
+      makeSummary({
+        ladoIdAtual: 0,
+        tempoTotalPorLadoEmMilisegundos: -1,
+        ladoBrancoTempoMilisegundosRestante: null,
+        ladoPretoTempoMilisegundosRestante: null,
+      }),
+    )
+    vi.advanceTimersByTime(3000)
+    expect(result.whiteMs.value).toBe(0)
+    expect(result.blackMs.value).toBe(0)
+    unmount()
+  })
+
   it('calls onExpired once when the clock reaches zero and stops at zero', () => {
     const onExpired = vi.fn()
     const { unmount, result } = setup(
-      makeSummary({ tempoDeTurnoEmMilisegundos: 60000, ladoBrancoTempoMilisegundosRestante: 1000 }),
+      makeSummary({
+        tempoTotalPorLadoEmMilisegundos: 60000,
+        ladoBrancoTempoMilisegundosRestante: 1000,
+      }),
       onExpired,
     )
     vi.advanceTimersByTime(5000)
@@ -73,7 +130,7 @@ describe('useTurnClock', () => {
     const { result, unmount } = setup(
       makeSummary({
         ladoIdAtual: 0,
-        tempoDeTurnoEmMilisegundos: 60000,
+        tempoTotalPorLadoEmMilisegundos: 60000,
         ladoBrancoTempoMilisegundosRestante: 5000,
         finalizado: 'Vitória: Preto',
       }),
@@ -85,7 +142,10 @@ describe('useTurnClock', () => {
 
   it('shows zero, never a negative time, for a side the server reports below zero', () => {
     const { result, unmount } = setup(
-      makeSummary({ tempoDeTurnoEmMilisegundos: 60000, ladoBrancoTempoMilisegundosRestante: -250 }),
+      makeSummary({
+        tempoTotalPorLadoEmMilisegundos: 60000,
+        ladoBrancoTempoMilisegundosRestante: -250,
+      }),
     )
     expect(result.whiteMs.value).toBe(0)
     unmount()
@@ -93,7 +153,10 @@ describe('useTurnClock', () => {
 
   it('does not count when the game has no time limit', () => {
     const { result, unmount } = setup(
-      makeSummary({ tempoDeTurnoEmMilisegundos: -1, ladoBrancoTempoMilisegundosRestante: 5000 }),
+      makeSummary({
+        tempoTotalPorLadoEmMilisegundos: -1,
+        ladoBrancoTempoMilisegundosRestante: 5000,
+      }),
     )
     vi.advanceTimersByTime(3000)
     expect(result.whiteMs.value).toBe(5000)
@@ -103,7 +166,7 @@ describe('useTurnClock', () => {
   it('does not count when a side has no player', () => {
     const { result, unmount } = setup(
       makeSummary({
-        tempoDeTurnoEmMilisegundos: 60000,
+        tempoTotalPorLadoEmMilisegundos: 60000,
         ladosIdDeslogados: [1],
         ladoBrancoTempoMilisegundosRestante: 5000,
       }),
@@ -118,7 +181,7 @@ describe('useTurnClock', () => {
     vi.advanceTimersByTime(2000)
     expect(result.whiteMs.value).toBe(0)
     summary.value = makeSummary({
-      tempoDeTurnoEmMilisegundos: 60000,
+      tempoTotalPorLadoEmMilisegundos: 60000,
       ladoBrancoTempoMilisegundosRestante: 4000,
       ladoPretoTempoMilisegundosRestante: null,
     })
@@ -130,7 +193,10 @@ describe('useTurnClock', () => {
 
   it('stops ticking when the component is unmounted', () => {
     const { result, unmount } = setup(
-      makeSummary({ tempoDeTurnoEmMilisegundos: 60000, ladoBrancoTempoMilisegundosRestante: 5000 }),
+      makeSummary({
+        tempoTotalPorLadoEmMilisegundos: 60000,
+        ladoBrancoTempoMilisegundosRestante: 5000,
+      }),
     )
     unmount()
     vi.advanceTimersByTime(3000)

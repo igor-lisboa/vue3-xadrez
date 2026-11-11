@@ -10,7 +10,8 @@ import MoveList from '@/components/game/MoveList.vue'
 import ReplayControls from '@/components/game/ReplayControls.vue'
 import { useGameReplay } from '@/composables/useGameReplay'
 import { useLocale } from '@/composables/useLocale'
-import { translateEnding } from '@/domain/labels'
+import { translateEndingHeading } from '@/domain/labels'
+import { formatClock } from '@/domain/clock'
 import { pairMoves } from '@/domain/move-text'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
@@ -31,11 +32,28 @@ const summaryLine = computed(() => {
   const winner = replay.winner.value
   return [
     review.value.room(props.gameId),
-    ending ? translateEnding(messages.value.labels.endings, ending) : review.value.inProgress,
+    ending
+      ? translateEndingHeading(messages.value.labels, {
+          ending,
+          reason: replay.reason.value,
+          winner,
+          resigner: replay.resigner.value,
+        })
+      : review.value.inProgress,
     winner === null ? null : messages.value.labels.winners[winner],
   ]
     .filter((part) => part !== null)
     .join(' · ')
+})
+/** Time each side used, one line per side: the clocks of the game as they stopped at the end. */
+const timeUsedLines = computed(() => {
+  const used = replay.timeUsed.value
+  if (!used) {
+    return []
+  }
+  return ([0, 1] as const).map((side) =>
+    review.value.timeUsed(messages.value.labels.sides[side], formatClock(used[side])),
+  )
 })
 const canStep = computed(() => replay.replay.value?.complete === true)
 const movePairs = computed(() => pairMoves(replay.replay.value?.moves ?? []))
@@ -51,6 +69,7 @@ const positionText = computed(() =>
   <template v-else-if="replay.replay.value">
     <h1>{{ review.title }}</h1>
     <p class="lead">{{ summaryLine }}</p>
+    <p v-for="line in timeUsedLines" :key="line" class="time-used mb-1">{{ line }}</p>
     <MaterialSummary
       v-if="replay.material.value"
       class="mb-3"

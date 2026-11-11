@@ -9,7 +9,7 @@ A Vue 3 + TypeScript frontend for a chess game. It talks to the Chess API (URL i
 ## Commands
 
 - `npm run dev`: development server
-- `npm run check`: typecheck, tests with coverage, and build. Run it before reporting a task as done.
+- `npm run check`: typecheck, lint (`npm run lint`), tests with coverage, and build. Run it before reporting a task as done.
 - `npm test`, `npm run test:coverage`, `npm run typecheck`
 - `npm run format`: Prettier (no semicolons, single quotes, 100 columns)
 - `npm run sync:agents` / `npm run check:agents`: regenerate / verify the per-tool skill and agent files

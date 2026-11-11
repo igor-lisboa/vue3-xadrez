@@ -164,7 +164,15 @@ describe('GameView draw claims', () => {
       .mockResolvedValue(makeSummary({ ladoIdAtual: 0, empateReivindicavel: true }))
     const wrapper = await open(0)
     expect(wrapper.find('.claim-draw').exists()).toBe(false)
-    handlers.get(SOCKET_EVENTS.moveMade)?.()
+    handlers.get(SOCKET_EVENTS.moveMade)?.({
+      ladoBrancoTempoMilisegundosRestante: null,
+      ladoBrancoTempoMilisegundosGasto: 0,
+      ladoPretoTempoMilisegundosRestante: null,
+      ladoPretoTempoMilisegundosGasto: 0,
+      chequeLadoAtual: false,
+      promocaoPara: null,
+      empateReivindicavel: true,
+    })
     await settle()
     expect(wrapper.find('.claim-draw').exists()).toBe(true)
   })

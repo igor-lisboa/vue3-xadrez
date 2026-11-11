@@ -3,8 +3,8 @@ import type { GameTypeId, PlayerTypeId, SideId, SideName, SquareName } from './e
 /** Body of POST /jogos. Every field is optional on the server, the frontend always sends them. */
 export interface CreateGameRequest {
   tipoJogo: GameTypeId
-  /** Turn time limit in milliseconds, -1 for no limit. */
-  tempoDeTurnoEmMilisegundos: number
+  /** Time each side has for the whole game, in milliseconds, -1 for no limit (not a limit per turn). */
+  tempoTotalPorLadoEmMilisegundos: number
 }
 
 /** Answer of POST /jogos. Only the id is read by the frontend. */

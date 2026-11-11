@@ -37,10 +37,21 @@ describe('useGameSocket', () => {
     const moveMade = vi.fn()
     const drawAnswered = vi.fn()
     const { unmount } = runComposable(() => useGameSocket(7, 0, { moveMade, drawAnswered }))
-    listeners.get(SOCKET_EVENTS.moveMade)?.()
+    listeners.get(SOCKET_EVENTS.moveMade)?.({})
     listeners.get(SOCKET_EVENTS.drawAnswered)?.()
     expect(moveMade).toHaveBeenCalledTimes(1)
     expect(drawAnswered).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('passes the payload of an event to its handler', () => {
+    const { socket, listeners } = fakeSocket()
+    vi.mocked(io).mockReturnValue(socket as never)
+    const gameFinished = vi.fn()
+    const { unmount } = runComposable(() => useGameSocket(7, 0, { gameFinished }))
+    const payload = { jogoFinalizacao: 'Vitória: Preto', ladoIdDesistente: 0 }
+    listeners.get(SOCKET_EVENTS.gameFinished)?.(payload)
+    expect(gameFinished).toHaveBeenCalledWith(payload)
     unmount()
   })
 

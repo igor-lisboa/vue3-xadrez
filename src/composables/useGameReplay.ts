@@ -2,7 +2,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
 import { getGameHistory } from '@/api/services/games'
 import type { PieceType, Square } from '@/api/types/catalogue'
-import type { EndingLabel, SideId } from '@/api/types/enums'
+import type { EndingLabel, FinishReason, SideId } from '@/api/types/enums'
 import { createBoardHouses } from '@/domain/board'
 import { markPlayedMove } from '@/domain/highlights'
 import { explainMaterialDraw } from '@/domain/material'
@@ -31,7 +31,11 @@ function isFormControl(target: EventTarget | null): boolean {
 interface ReviewedGame {
   replay: GameReplay
   ending: EndingLabel | null
+  reason: FinishReason | null
   winner: SideId | null
+  resigner: SideId | null
+  /** Time each side used, in milliseconds. */
+  timeUsed: Record<SideId, number>
   sideOnMove: SideId
 }
 
@@ -50,7 +54,13 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
       return {
         replay: buildReplay(history),
         ending: history.finalizado?.tipo ?? null,
+        reason: history.motivoFinalizacao,
         winner: history.ladoIdVencedor,
+        resigner: history.ladoIdDesistente,
+        timeUsed: {
+          0: history.ladoBrancoTempoMilisegundosGasto,
+          1: history.ladoPretoTempoMilisegundosGasto,
+        },
         sideOnMove: history.ladoIdAtual,
       }
     },
@@ -59,8 +69,14 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
   )
   const replay = computed(() => game.value?.replay ?? null)
   const ending = computed(() => game.value?.ending ?? null)
+  /** Why the game ended, or null while it runs. */
+  const reason = computed(() => game.value?.reason ?? null)
   /** The side the API names as the winner, or null for a draw or a game in progress. */
   const winner = computed(() => game.value?.winner ?? null)
+  /** The side the API names as the one that resigned; never worked out from the winner. */
+  const resigner = computed(() => game.value?.resigner ?? null)
+  /** Time each side used, in milliseconds; for a game in progress, the time used so far. */
+  const timeUsed = computed(() => game.value?.timeUsed ?? null)
   /** Why an insufficient-material draw happened, read from the final position. */
   const material = computed(() => {
     const reviewed = game.value
@@ -118,7 +134,10 @@ export function useGameReplay(gameId: number, sideId: SideId, options: LoaderOpt
   return {
     replay,
     ending,
+    reason,
     winner,
+    resigner,
+    timeUsed,
     material,
     loading,
     houses,

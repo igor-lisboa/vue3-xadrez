@@ -17,16 +17,16 @@ export const it: Messages = {
   },
   home: {
     title: 'Ciao',
-    lead: 'Clicca sull’opzione desiderata per i tipi di giocatore e il tempo di gioco.',
+    lead: 'Clicca sull’opzione desiderata per i tipi di giocatore e il tempo di gioco di ciascun lato.',
     or: 'OPPURE',
     enterRoom: 'Entra in una stanza',
     roomPrompt: 'In quale stanza vuoi entrare?',
     reviewGame: 'Rivedi una partita',
     reviewPrompt: 'Qual è il numero della stanza della partita da rivedere?',
     shiftTimes: {
-      five: '5 minuti',
-      ten: '10 minuti',
-      fifteen: '15 minuti',
+      five: '5 minuti per lato',
+      ten: '10 minuti per lato',
+      fifteen: '15 minuti per lato',
     },
   },
   selectSide: {
@@ -75,6 +75,7 @@ export const it: Messages = {
     noMoves: 'In questa partita non è stata giocata nessuna mossa.',
     unavailable:
       'Le mosse di questa partita non si possono riprodurre, quindi la scacchiera mostra solo la posizione finale.',
+    timeUsed: (side, time) => `Tempo usato (${side}): ${time}`,
   },
   game: {
     resign: 'Abbandona',
@@ -118,6 +119,22 @@ export const it: Messages = {
       'Empate: Regra 75 movimentos': 'Patta: regola delle 75 mosse',
       'Empate: Posição morta': 'Patta: posizione morta',
     },
+    finishReasons: {
+      xequeMate: ({ winner }) => `Vittoria del ${winner} per scacco matto`,
+      tempoEsgotado: ({ winner, loser }) =>
+        `Vittoria del ${winner}: il tempo del ${loser} è scaduto`,
+      desistencia: ({ winner, loser }) => `Vittoria del ${winner}: il ${loser} si è arreso`,
+      reiAfogado: ({ winner }) => `Vittoria del ${winner}: stallo`,
+      comumAcordo: ({ winner }) => `Vittoria del ${winner}: accordo reciproco`,
+      regra50Movimentos: ({ winner }) => `Vittoria del ${winner}: regola delle 50 mosse`,
+      regra75Movimentos: ({ winner }) => `Vittoria del ${winner}: regola delle 75 mosse`,
+      repeticao3Posicoes: ({ winner }) => `Vittoria del ${winner}: triplice ripetizione`,
+      repeticao5Posicoes: ({ winner }) => `Vittoria del ${winner}: quintupla ripetizione`,
+      insuficienciaMaterial: ({ winner }) => `Vittoria del ${winner}: materiale insufficiente`,
+      posicaoMorta: ({ winner }) => `Vittoria del ${winner}: posizione morta`,
+    },
+    resignationDraw: ({ resigner, other }) =>
+      `Patta: il ${resigner} si è arreso, ma il ${other} non aveva materiale per dare scacco matto`,
     moves: {
       'Roque Menor': 'Arrocco corto',
       'Roque Maior': 'Arrocco lungo',

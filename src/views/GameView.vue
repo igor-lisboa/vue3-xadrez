@@ -19,6 +19,7 @@ import { useGameState } from '@/composables/useGameState'
 import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
 import { useTurnClock } from '@/composables/useTurnClock'
+import { timeLimitOf } from '@/domain/clock'
 import { AI_VS_AI_GAME_LABEL, NO_TIME_LIMIT } from '@/domain/constants'
 import { translateGameType } from '@/domain/labels'
 import { notify } from '@/services/dialogs'
@@ -40,7 +41,7 @@ const { houses, selectHouse } = useChessBoard({
   onMoveAttempted: refresh,
   playMove: draw.playMove,
 })
-const { whiteMs, blackMs } = useTurnClock(summary, () => void refresh())
+const { whiteMs, blackMs, applyClocks } = useTurnClock(summary, () => void refresh())
 const actions = useRequest()
 const busy = computed(() => actions.pending.value || draw.pending.value)
 const spectatorOnly = computed(() => summary.value?.tipoJogo === AI_VS_AI_GAME_LABEL)
@@ -54,12 +55,19 @@ useGameSocket(props.gameId, props.sideId, {
     notify(messages.value.game.opponentJoined)
     return refresh()
   },
-  moveMade: refresh,
+  // The event carries the clocks as they are now: show them at once, then reload the rest.
+  moveMade: (payload) => {
+    applyClocks(payload)
+    return refresh()
+  },
   drawProposed: refresh,
   drawAnswered: refresh,
   resetProposed: refresh,
   resetAnswered: refresh,
-  gameFinished: refresh,
+  gameFinished: (payload) => {
+    applyClocks(payload)
+    return refresh()
+  },
 })
 
 async function resign(): Promise<void> {
@@ -106,7 +114,7 @@ onMounted(async () => {
     />
 
     <ClockPanel
-      v-if="summary.tempoDeTurnoEmMilisegundos !== NO_TIME_LIMIT"
+      v-if="timeLimitOf(summary) !== NO_TIME_LIMIT"
       :white-ms="whiteMs"
       :black-ms="blackMs"
       :labels="messages.labels.sides"

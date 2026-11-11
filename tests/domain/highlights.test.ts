@@ -38,6 +38,11 @@ describe('highlights', () => {
     expect(marked[1]).toMatchObject({ captures: false, movementName: 'L' })
   })
 
+  it('marks no destination when the piece has no legal move (stalemate, checkmate or pinned)', () => {
+    const board = houses()
+    expect(markPossibleMoves(board, [])).toEqual(board)
+  })
+
   it('clears every highlight', () => {
     const marked = markOrigin(markPossibleMoves(houses(), [move('B8', true, 'L')]), 0)
     const cleared = clearHighlights(marked)

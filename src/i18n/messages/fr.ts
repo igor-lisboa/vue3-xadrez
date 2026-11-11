@@ -17,16 +17,16 @@ export const fr: Messages = {
   },
   home: {
     title: 'Bonjour',
-    lead: 'Cliquez sur l’option souhaitée pour les types de joueurs et le temps de réflexion.',
+    lead: 'Cliquez sur l’option souhaitée pour les types de joueurs et le temps de chaque camp.',
     or: 'OU',
     enterRoom: 'Rejoindre une salle',
     roomPrompt: 'Quelle salle souhaitez-vous rejoindre ?',
     reviewGame: 'Revoir une partie',
     reviewPrompt: 'Quel est le numéro de la salle de la partie à revoir ?',
     shiftTimes: {
-      five: '5 minutes',
-      ten: '10 minutes',
-      fifteen: '15 minutes',
+      five: '5 minutes par camp',
+      ten: '10 minutes par camp',
+      fifteen: '15 minutes par camp',
     },
   },
   selectSide: {
@@ -75,6 +75,7 @@ export const fr: Messages = {
     noMoves: 'Aucun coup n’a été joué dans cette partie.',
     unavailable:
       'Les coups de cette partie ne peuvent pas être rejoués : l’échiquier montre seulement la position finale.',
+    timeUsed: (side, time) => `Temps utilisé (${side}) : ${time}`,
   },
   game: {
     resign: 'Abandonner',
@@ -118,6 +119,22 @@ export const fr: Messages = {
       'Empate: Regra 75 movimentos': 'Nulle : règle des 75 coups',
       'Empate: Posição morta': 'Nulle : position morte',
     },
+    finishReasons: {
+      xequeMate: ({ winner }) => `Victoire des ${winner} par mat`,
+      tempoEsgotado: ({ winner, loser }) =>
+        `Victoire des ${winner} : le temps des ${loser} est écoulé`,
+      desistencia: ({ winner, loser }) => `Victoire des ${winner} : les ${loser} ont abandonné`,
+      reiAfogado: ({ winner }) => `Victoire des ${winner} : pat`,
+      comumAcordo: ({ winner }) => `Victoire des ${winner} : accord mutuel`,
+      regra50Movimentos: ({ winner }) => `Victoire des ${winner} : règle des 50 coups`,
+      regra75Movimentos: ({ winner }) => `Victoire des ${winner} : règle des 75 coups`,
+      repeticao3Posicoes: ({ winner }) => `Victoire des ${winner} : répétition de 3 positions`,
+      repeticao5Posicoes: ({ winner }) => `Victoire des ${winner} : répétition de 5 positions`,
+      insuficienciaMaterial: ({ winner }) => `Victoire des ${winner} : matériel insuffisant`,
+      posicaoMorta: ({ winner }) => `Victoire des ${winner} : position morte`,
+    },
+    resignationDraw: ({ resigner, other }) =>
+      `Nulle : les ${resigner} ont abandonné, mais les ${other} n’avaient pas le matériel pour mater`,
     moves: {
       'Roque Menor': 'Petit roque',
       'Roque Maior': 'Grand roque',

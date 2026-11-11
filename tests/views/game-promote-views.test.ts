@@ -6,18 +6,14 @@ import {
   listPromotionPieces,
   listSquares,
 } from '@/api/services/catalogue'
-import { createGame, getGameSummary, listSidesWithoutPlayer } from '@/api/services/games'
-import { joinGame, leaveGame } from '@/api/services/players'
+import { getGameSummary } from '@/api/services/games'
+import { leaveGame } from '@/api/services/players'
 import { promotePawn } from '@/api/services/moves'
 import { proposeDraw } from '@/api/services/proposals'
 import { triggerAi } from '@/api/services/ai'
-import { askText, notify } from '@/services/dialogs'
-import HomeView from '@/views/HomeView.vue'
-import SelectSideView from '@/views/SelectSideView.vue'
+import { notify } from '@/services/dialogs'
 import GameView from '@/views/GameView.vue'
 import PromotePawnView from '@/views/PromotePawnView.vue'
-import EndGameView from '@/views/EndGameView.vue'
-import AnswerProposalView from '@/views/AnswerProposalView.vue'
 import { makeSummary, gameTypes, pieceTypes, squares } from '../helpers/fixtures'
 
 const { push, routeState } = vi.hoisted(() => ({
@@ -88,7 +84,9 @@ describe('GameView', () => {
   })
 
   it('shows the clocks only for games with a time limit', async () => {
-    vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ tempoDeTurnoEmMilisegundos: 300000 }))
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({ tempoTotalPorLadoEmMilisegundos: 300000 }),
+    )
     const wrapper = mount(GameView, { props })
     await settle()
     expect(wrapper.findAll('.badge')).toHaveLength(2)

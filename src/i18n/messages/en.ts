@@ -17,16 +17,16 @@ export const en: Messages = {
   },
   home: {
     title: 'Hello',
-    lead: 'Click the option you want for the player types and the turn time.',
+    lead: 'Click the option you want for the player types and the time each side has for the game.',
     or: 'OR',
     enterRoom: 'Enter a room',
     roomPrompt: 'Which room do you want to enter?',
     reviewGame: 'Review a game',
     reviewPrompt: 'Enter the room number of the game you want to review.',
     shiftTimes: {
-      five: '5 minutes',
-      ten: '10 minutes',
-      fifteen: '15 minutes',
+      five: '5 minutes per side',
+      ten: '10 minutes per side',
+      fifteen: '15 minutes per side',
     },
   },
   selectSide: {
@@ -75,6 +75,7 @@ export const en: Messages = {
     noMoves: 'No moves were played in this game.',
     unavailable:
       'The moves of this game cannot be replayed, so the board shows the final position only.',
+    timeUsed: (side, time) => `Time used (${side}): ${time}`,
   },
   game: {
     resign: 'Resign',
@@ -116,6 +117,21 @@ export const en: Messages = {
       'Empate: Regra 75 movimentos': 'Draw: 75-move rule',
       'Empate: Posição morta': 'Draw: dead position',
     },
+    finishReasons: {
+      xequeMate: ({ winner }) => `${winner} wins by checkmate`,
+      tempoEsgotado: ({ winner, loser }) => `${winner} wins: ${loser} ran out of time`,
+      desistencia: ({ winner, loser }) => `${winner} wins: ${loser} resigned`,
+      reiAfogado: ({ winner }) => `${winner} wins: stalemate`,
+      comumAcordo: ({ winner }) => `${winner} wins by agreement`,
+      regra50Movimentos: ({ winner }) => `${winner} wins: 50-move rule`,
+      regra75Movimentos: ({ winner }) => `${winner} wins: 75-move rule`,
+      repeticao3Posicoes: ({ winner }) => `${winner} wins: threefold repetition`,
+      repeticao5Posicoes: ({ winner }) => `${winner} wins: fivefold repetition`,
+      insuficienciaMaterial: ({ winner }) => `${winner} wins: insufficient material`,
+      posicaoMorta: ({ winner }) => `${winner} wins: dead position`,
+    },
+    resignationDraw: ({ resigner, other }) =>
+      `Draw: ${resigner} resigned, but ${other} had no material to checkmate`,
     moves: {
       'Roque Menor': 'Short castling',
       'Roque Maior': 'Long castling',

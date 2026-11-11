@@ -1,13 +1,13 @@
 # Chess Frontend
 
-Web client for a chess game. Players create a game against another human or against the AI, pick a turn time limit, and play move by move. The game state lives in the [Chess API](https://github.com/igor-lisboa/tcc00339-gpms-xadrez-backend), and this app shows it and sends the players' actions.
+Web client for a chess game. Players create a game against another human or against the AI, pick the time each side has for the game, and play move by move. The game state lives in the [Chess API](https://github.com/igor-lisboa/tcc00339-gpms-xadrez-backend), and this app shows it and sends the players' actions.
 
 Built with Vue 3, TypeScript, Vite, Bootstrap 5 and socket.io for live updates.
 
 ## Features
 
 - Create a human vs human, human vs AI, or AI vs AI game
-- Choose a turn time limit (5, 10 or 15 minutes)
+- Choose the time each side has for the game (5, 10 or 15 minutes per side)
 - Join an existing game by its id, on a free side
 - Play with click-to-move: select a piece to see its legal moves, click a highlighted square to move
 - Pawn promotion, draw offers (that never block play) and reset offers, with accept or decline
@@ -58,7 +58,7 @@ The API must be reachable from the browser. The Vercel deployment used by defaul
 | `npm test` | Runs the test suite once |
 | `npm run test:watch` | Runs the tests in watch mode |
 | `npm run test:coverage` | Runs the tests and reports coverage (thresholds enforced) |
-| `npm run check` | Type-check, tests with coverage, and build. Run this before opening a pull request |
+| `npm run check` | Type-check, lint, tests with coverage, and build. Run this before opening a pull request |
 | `npm run format` | Formats the source and test files with Prettier |
 | `npm run sync:agents` | Regenerates the skill and agent files of Claude Code, Codex and Copilot from `.agents/` |
 | `npm run check:agents` | Fails when those generated files differ from `.agents/` |

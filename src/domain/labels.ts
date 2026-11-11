@@ -1,5 +1,5 @@
 import type { GameType } from '@/api/types/catalogue'
-import type { PlayerTypeId } from '@/api/types/enums'
+import type { PlayerTypeId, SideId } from '@/api/types/enums'
 
 /**
  * Game type as shown on the home page, for example "Human X AI".
@@ -41,4 +41,67 @@ export function translateGameType(
  */
 export function translateEnding(endings: Partial<Record<string, string>>, ending: string): string {
   return endings[ending] ?? ending
+}
+
+/** The names a win heading is built from: the winner, and the side that lost. */
+export interface WinNames {
+  winner: string
+  loser: string
+}
+
+/** The names a resignation draw is built from: the side that resigned, and the other side. */
+export interface ResignationNames {
+  resigner: string
+  other: string
+}
+
+/** The texts the ending heading is built from; the message file's `labels` section has them. */
+export interface EndingTexts {
+  sides: Record<SideId, string>
+  endings: Partial<Record<string, string>>
+  finishReasons: Partial<Record<string, (names: WinNames) => string>>
+  resignationDraw: (names: ResignationNames) => string
+}
+
+/** What the game says about its ending. `resigner` is the side the API names, never inferred. */
+export interface EndingFacts {
+  ending: string
+  reason: string | null
+  winner: SideId | null
+  resigner: SideId | null
+}
+
+function otherSide(side: SideId): SideId {
+  return side === 0 ? 1 : 0
+}
+
+/**
+ * Heading of a finished game. A win shows its reason ("Black wins by checkmate"), because the API
+ * uses the same ending label for a checkmate and for a time out. A resignation names the side that
+ * resigned, as the API sends it in `resigner`. A resignation without that side is not named at all:
+ * the ending label is shown. Any other case, or a reason the frontend does not know, shows the label.
+ */
+export function translateEndingHeading(texts: EndingTexts, game: EndingFacts): string {
+  const { sides } = texts
+  if (game.reason === 'desistencia') {
+    if (game.resigner === null) {
+      return translateEnding(texts.endings, game.ending)
+    }
+    if (game.winner === null) {
+      return texts.resignationDraw({
+        resigner: sides[game.resigner],
+        other: sides[otherSide(game.resigner)],
+      })
+    }
+    const phrase = texts.finishReasons.desistencia
+    if (phrase) {
+      return phrase({ winner: sides[game.winner], loser: sides[game.resigner] })
+    }
+  } else if (game.winner !== null && game.reason !== null) {
+    const phrase = texts.finishReasons[game.reason]
+    if (phrase) {
+      return phrase({ winner: sides[game.winner], loser: sides[otherSide(game.winner)] })
+    }
+  }
+  return translateEnding(texts.endings, game.ending)
 }

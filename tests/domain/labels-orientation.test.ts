@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { gameTypeLabel, translateEnding, translateGameType } from '@/domain/labels'
+import {
+  gameTypeLabel,
+  translateEnding,
+  translateEndingHeading,
+  translateGameType,
+} from '@/domain/labels'
 import { orientForSide } from '@/domain/orientation'
 import { en } from '@/i18n/messages/en'
+import { ptBR } from '@/i18n/messages/pt-br'
 import { gameTypes } from '../helpers/fixtures'
 
 describe('translateGameType', () => {
@@ -46,5 +52,110 @@ describe('orientForSide', () => {
     const items = [1, 2]
     orientForSide(items, 1)
     expect(items).toEqual([1, 2])
+  })
+})
+
+describe('translateEndingHeading', () => {
+  const texts = en.labels
+
+  it('says why a side won, because checkmate and time out share the same ending', () => {
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Vitória: Preto',
+        reason: 'xequeMate',
+        winner: 1,
+        resigner: null,
+      }),
+    ).toBe('Black wins by checkmate')
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Vitória: Preto',
+        reason: 'tempoEsgotado',
+        winner: 1,
+        resigner: null,
+      }),
+    ).toBe('Black wins: White ran out of time')
+  })
+
+  it('names the side that resigned, as the API sends it, when the other side won', () => {
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Desistência: Um jogador deixou a partida',
+        reason: 'desistencia',
+        winner: 1,
+        resigner: 0,
+      }),
+    ).toBe('Black wins: White resigned')
+  })
+
+  it('names the side that resigned in a draw, and the side that could not mate', () => {
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Empate: Insuficiência material',
+        reason: 'desistencia',
+        winner: null,
+        resigner: 1,
+      }),
+    ).toBe('Draw: Black resigned, but White had no material to checkmate')
+  })
+
+  it('does not name a resigner the API did not send, even when a side won', () => {
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Desistência: Um jogador deixou a partida',
+        reason: 'desistencia',
+        winner: 0,
+        resigner: null,
+      }),
+    ).toBe('Resignation: a player left the game')
+  })
+
+  it('shows the ending label when there is no winner reason to add', () => {
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Empate: Comum acordo',
+        reason: null,
+        winner: null,
+        resigner: null,
+      }),
+    ).toBe('Draw: by agreement')
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Vitória: Branco',
+        reason: null,
+        winner: 0,
+        resigner: null,
+      }),
+    ).toBe('White wins')
+  })
+
+  it('shows the ending label for a reason the frontend does not know', () => {
+    expect(
+      translateEndingHeading(texts, {
+        ending: 'Vitória: Branco',
+        reason: 'motivoNovo',
+        winner: 0,
+        resigner: null,
+      }),
+    ).toBe('White wins')
+  })
+
+  it('builds the Portuguese heading with the names of the sides', () => {
+    expect(
+      translateEndingHeading(ptBR.labels, {
+        ending: 'Vitória: Preto',
+        reason: 'xequeMate',
+        winner: 1,
+        resigner: null,
+      }),
+    ).toBe('Vitória das Pretas por xeque-mate')
+    expect(
+      translateEndingHeading(ptBR.labels, {
+        ending: 'Desistência: Um jogador deixou a partida',
+        reason: 'desistencia',
+        winner: null,
+        resigner: 0,
+      }),
+    ).toBe('Empate: as Brancas desistiram, mas as Pretas não tinham material para dar xeque-mate')
   })
 })

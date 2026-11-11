@@ -17,16 +17,16 @@ export const ptBR: Messages = {
   },
   home: {
     title: 'Olá',
-    lead: 'Clique na opção desejada para os tipos de jogador e o tempo de turno.',
+    lead: 'Clique na opção desejada para os tipos de jogador e o tempo total de cada lado.',
     or: 'OU',
     enterRoom: 'Entrar em uma sala',
     roomPrompt: 'Em qual sala você quer entrar?',
     reviewGame: 'Revisar uma partida',
     reviewPrompt: 'Qual é o número da sala da partida que você quer revisar?',
     shiftTimes: {
-      five: '5 minutos',
-      ten: '10 minutos',
-      fifteen: '15 minutos',
+      five: '5 minutos por lado',
+      ten: '10 minutos por lado',
+      fifteen: '15 minutos por lado',
     },
   },
   selectSide: {
@@ -75,6 +75,7 @@ export const ptBR: Messages = {
     noMoves: 'Nenhuma jogada foi feita nesta partida.',
     unavailable:
       'Não foi possível reproduzir as jogadas desta partida, então o tabuleiro mostra apenas a posição final.',
+    timeUsed: (side, time) => `Tempo usado (${side}): ${time}`,
   },
   game: {
     resign: 'Desistir',
@@ -118,6 +119,21 @@ export const ptBR: Messages = {
       'Empate: Regra 75 movimentos': 'Empate: regra dos 75 movimentos',
       'Empate: Posição morta': 'Empate: posição morta',
     },
+    finishReasons: {
+      xequeMate: ({ winner }) => `Vitória das ${winner} por xeque-mate`,
+      tempoEsgotado: ({ winner, loser }) => `Vitória das ${winner}: o tempo das ${loser} acabou`,
+      desistencia: ({ winner, loser }) => `Vitória das ${winner}: as ${loser} desistiram`,
+      reiAfogado: ({ winner }) => `Vitória das ${winner}: rei afogado`,
+      comumAcordo: ({ winner }) => `Vitória das ${winner}: acordo mútuo`,
+      regra50Movimentos: ({ winner }) => `Vitória das ${winner}: regra dos 50 movimentos`,
+      regra75Movimentos: ({ winner }) => `Vitória das ${winner}: regra dos 75 movimentos`,
+      repeticao3Posicoes: ({ winner }) => `Vitória das ${winner}: repetição de 3 posições`,
+      repeticao5Posicoes: ({ winner }) => `Vitória das ${winner}: repetição de 5 posições`,
+      insuficienciaMaterial: ({ winner }) => `Vitória das ${winner}: material insuficiente`,
+      posicaoMorta: ({ winner }) => `Vitória das ${winner}: posição morta`,
+    },
+    resignationDraw: ({ resigner, other }) =>
+      `Empate: as ${resigner} desistiram, mas as ${other} não tinham material para dar xeque-mate`,
     moves: {
       'Roque Menor': 'Roque curto',
       'Roque Maior': 'Roque longo',

@@ -9,7 +9,7 @@ A Vue 3 + TypeScript frontend for a chess game. It talks to the Chess API (see `
 ## Commands
 
 - `npm run dev`: development server
-- `npm run check`: typecheck, tests with coverage, and build. **Run this before reporting a task as done.**
+- `npm run check`: typecheck, lint (`npm run lint`, ESLint), tests with coverage, and build. **Run this before reporting a task as done.**
 - `npm test`, `npm run test:watch`, `npm run test:coverage`
 - `npm run format`: Prettier
 
@@ -20,7 +20,7 @@ Node 20.19+ or 22.12+ is required.
 ### Language
 - All code, identifiers, comments and file names are in **English**.
 - UI text is never hard-coded in components or views. It lives in one message file per language under `src/i18n/messages/` (en, pt-BR, pt, fr, it, de). Each file implements the `Messages` interface, so a missing key fails the type check. Views read texts with `useLocale()`; components receive them as props. Add a key to every language file in the same change.
-- Wire values from the API stay as the API sends them (Portuguese): query and body keys such as `tipoJogo`, `tempoDeTurnoEmMilisegundos`, `resposta`, the header `lado`, the enums `Branco`, `Rei`, `responderPropostaEmpate`, and the URL segments such as `/propoe` and `/responde`. Their translations for display are in the `labels` section of each message file.
+- Wire values from the API stay as the API sends them (Portuguese): query and body keys such as `tipoJogo`, `tempoTotalPorLadoEmMilisegundos`, `resposta`, the header `lado`, the enums `Branco`, `Rei`, `responderPropostaEmpate`, and the URL segments such as `/propoe` and `/responde`. Their translations for display are in the `labels` section of each message file.
 - Server messages (`message` in the envelope) are shown as received.
 
 ### Structure (keep these rules)

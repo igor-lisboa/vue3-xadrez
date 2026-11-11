@@ -83,7 +83,7 @@ describe('GameReviewView', () => {
     expect(wrapper.find('.material-summary').exists()).toBe(false)
   })
 
-  it('names the winner of a resignation from ladoIdVencedor', async () => {
+  it('names the winner and the side that resigned, from the API fields', async () => {
     vi.mocked(getGameHistory).mockResolvedValue(
       makeHistory(
         [],
@@ -91,14 +91,56 @@ describe('GameReviewView', () => {
         {},
         {
           finalizado: { tipo: 'Desistência: Um jogador deixou a partida' },
+          motivoFinalizacao: 'desistencia',
           ladoIdVencedor: 0,
+          ladoIdDesistente: 1,
+        },
+      ),
+    )
+    const wrapper = await open()
+    expect(wrapper.find('.lead').text()).toBe('Room 7 · White wins: Black resigned · Winner: White')
+  })
+
+  it('names the side that resigned in a draw, with no winner', async () => {
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory(
+        [],
+        kingsAndBishop(),
+        {},
+        {
+          finalizado: { tipo: 'Empate: Insuficiência material' },
+          motivoFinalizacao: 'desistencia',
+          ladoIdVencedor: null,
+          ladoIdDesistente: 0,
         },
       ),
     )
     const wrapper = await open()
     expect(wrapper.find('.lead').text()).toBe(
-      'Room 7 · Resignation: a player left the game · Winner: White',
+      'Room 7 · Draw: White resigned, but Black had no material to checkmate',
     )
+  })
+
+  it('shows the time each side used, from the game, for the review', async () => {
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory(
+        [],
+        startingPosition(),
+        {},
+        {
+          finalizado: { tipo: 'Vitória: Preto' },
+          motivoFinalizacao: 'xequeMate',
+          ladoIdVencedor: 1,
+          ladoBrancoTempoMilisegundosGasto: 754000,
+          ladoPretoTempoMilisegundosGasto: 61000,
+        },
+      ),
+    )
+    const wrapper = await open()
+    expect(wrapper.findAll('.time-used').map((line) => line.text())).toEqual([
+      'Time used (White): 00:12:34',
+      'Time used (Black): 00:01:01',
+    ])
   })
 
   it('names a dead-position draw without a winner', async () => {

@@ -54,6 +54,14 @@ describe('message files', () => {
     expect(text).toContain('40')
   })
 
+  it.each(LOCALES)('%s words a win for every reason, naming the winner', (locale) => {
+    const reasons = Object.values(MESSAGES[locale].labels.finishReasons)
+    expect(reasons).toHaveLength(11)
+    for (const heading of reasons) {
+      expect(heading({ winner: 'Winner', loser: 'Loser' })).toContain('Winner')
+    }
+  })
+
   it.each(LOCALES)('%s names the room of a reviewed game with its number', (locale) => {
     expect(MESSAGES[locale].review.room(7)).toContain('7')
   })

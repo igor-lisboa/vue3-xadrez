@@ -46,7 +46,7 @@ describe('catalogue services', () => {
 describe('game services', () => {
   it('creates a game with the body and returns its id', async () => {
     vi.mocked(http.post).mockResolvedValue(envelope({ id: 4 }))
-    const body = { tipoJogo: 0 as const, tempoDeTurnoEmMilisegundos: -1 }
+    const body = { tipoJogo: 0 as const, tempoTotalPorLadoEmMilisegundos: -1 }
     await expect(createGame(body)).resolves.toEqual({ id: 4 })
     expect(http.post).toHaveBeenCalledWith('/jogos', body)
   })

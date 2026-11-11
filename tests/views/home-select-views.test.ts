@@ -7,16 +7,11 @@ import {
   listSquares,
 } from '@/api/services/catalogue'
 import { createGame, getGameSummary, listSidesWithoutPlayer } from '@/api/services/games'
-import { joinGame, leaveGame } from '@/api/services/players'
-import { promotePawn } from '@/api/services/moves'
+import { joinGame } from '@/api/services/players'
 import { triggerAi } from '@/api/services/ai'
 import { askText, notify } from '@/services/dialogs'
 import HomeView from '@/views/HomeView.vue'
 import SelectSideView from '@/views/SelectSideView.vue'
-import GameView from '@/views/GameView.vue'
-import PromotePawnView from '@/views/PromotePawnView.vue'
-import EndGameView from '@/views/EndGameView.vue'
-import AnswerProposalView from '@/views/AnswerProposalView.vue'
 import { makeSummary, gameTypes, pieceTypes, squares } from '../helpers/fixtures'
 
 const { push, routeState } = vi.hoisted(() => ({
@@ -87,13 +82,13 @@ describe('HomeView', () => {
     const wrapper = mount(HomeView)
     await settle()
     const labels = wrapper.findAll('label').map((label) => label.text())
-    expect(labels).toEqual(['5 minutes', '10 minutes', '15 minutes'])
+    expect(labels).toEqual(['5 minutes per side', '10 minutes per side', '15 minutes per side'])
     expect((wrapper.findAll('input[type="radio"]')[0]!.element as HTMLInputElement).checked).toBe(
       true,
     )
   })
 
-  it('creates a human game with the chosen turn time and asks for a side', async () => {
+  it('creates a human game with the chosen time and asks for a side', async () => {
     vi.mocked(createGame).mockResolvedValue({ id: 9 })
     const wrapper = mount(HomeView)
     await settle()
@@ -103,7 +98,10 @@ describe('HomeView', () => {
       .find((button) => button.text() === 'Human X Human')!
       .trigger('click')
     await settle()
-    expect(createGame).toHaveBeenCalledWith({ tipoJogo: 0, tempoDeTurnoEmMilisegundos: 900000 })
+    expect(createGame).toHaveBeenCalledWith({
+      tipoJogo: 0,
+      tempoTotalPorLadoEmMilisegundos: 900000,
+    })
     expect(push).toHaveBeenCalledWith({ name: 'selectSide', params: { id: 9 } })
   })
 

@@ -30,7 +30,7 @@ const busy = computed(() => loadingTypes.value || creation.pending.value)
 
 async function createGameWithType(type: GameTypeId): Promise<void> {
   const created = await creation.perform(() =>
-    createGame({ tipoJogo: type, tempoDeTurnoEmMilisegundos: shiftTime.value }),
+    createGame({ tipoJogo: type, tempoTotalPorLadoEmMilisegundos: shiftTime.value }),
   )
   if (!created) {
     return

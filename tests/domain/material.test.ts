@@ -26,14 +26,24 @@ describe('explainMaterialDraw', () => {
 
   it('explains nothing for another result', () => {
     expect(
-      explainMaterialDraw({ ending: 'Vitória: Branco', cells: kingsAndKnight, sideOnMove: 0 }),
+      explainMaterialDraw({
+        ending: 'Vitória: Branco',
+        reason: null,
+        cells: kingsAndKnight,
+        sideOnMove: 0,
+      }),
     ).toBeNull()
-    expect(explainMaterialDraw({ ending: null, cells: [], sideOnMove: 0 })).toBeNull()
+    expect(explainMaterialDraw({ ending: null, reason: null, cells: [], sideOnMove: 0 })).toBeNull()
   })
 
   it('blames the material when neither side can checkmate', () => {
     expect(
-      explainMaterialDraw({ ending: MATERIAL_DRAW, cells: kingsAndKnight, sideOnMove: 1 }),
+      explainMaterialDraw({
+        ending: MATERIAL_DRAW,
+        reason: null,
+        cells: kingsAndKnight,
+        sideOnMove: 1,
+      }),
     ).toEqual({
       cause: { kind: 'material' },
       sides: [
@@ -43,9 +53,21 @@ describe('explainMaterialDraw', () => {
     })
   })
 
+  it('explains nothing for a resignation draw: the side that resigned may still have pieces', () => {
+    expect(
+      explainMaterialDraw({
+        ending: MATERIAL_DRAW,
+        reason: 'desistencia',
+        cells: kingsAndKnight,
+        sideOnMove: 0,
+      }),
+    ).toBeNull()
+  })
+
   it('names the side that ran out of time in a time-out draw', () => {
     const report = explainMaterialDraw({
       ending: TIME_OUT_DRAW,
+      reason: null,
       cells: kingsAndRook,
       sideOnMove: 1,
     })
@@ -57,6 +79,7 @@ describe('explainMaterialDraw', () => {
     // The API decides which pieces can mate; the report only lists the pieces of its ending.
     const report = explainMaterialDraw({
       ending: TIME_OUT_DRAW,
+      reason: null,
       cells: ['Rei-0', 'Cavalo-0', 'Cavalo-0', 'Rei-1'],
       sideOnMove: 1,
     })
@@ -74,6 +97,8 @@ describe('explainMaterialDraw', () => {
     'Empate: Regra 75 movimentos',
     'Empate: Posição morta',
   ])('explains nothing for the automatic draw %s', (ending) => {
-    expect(explainMaterialDraw({ ending, cells: kingsAndKnight, sideOnMove: 0 })).toBeNull()
+    expect(
+      explainMaterialDraw({ ending, reason: null, cells: kingsAndKnight, sideOnMove: 0 }),
+    ).toBeNull()
   })
 })

@@ -1,5 +1,6 @@
 import type {
   EndingLabel,
+  FinishReason,
   MoveName,
   PieceName,
   PlayerTypeId,
@@ -7,6 +8,7 @@ import type {
   SideId,
 } from '@/api/types/enums'
 import type { ShiftTimeKey } from '@/domain/constants'
+import type { ResignationNames, WinNames } from '@/domain/labels'
 
 /**
  * Every text the frontend shows, for one language. Each language file must provide all of it,
@@ -78,6 +80,8 @@ export interface Messages {
     startPosition: string
     noMoves: string
     unavailable: string
+    /** Time a side used in the game, for example "Time used (White): 00:12:04". */
+    timeUsed: (side: string, time: string) => string
   }
   game: {
     resign: string
@@ -103,6 +107,10 @@ export interface Messages {
     playerTypes: Record<PlayerTypeId, string>
     pieces: Record<PieceName, string>
     endings: Record<EndingLabel, string>
+    /** Heading of a win, by the reason the API gives (the same ending is used for a checkmate and a time out). */
+    finishReasons: Record<FinishReason, (names: WinNames) => string>
+    /** Heading of a draw by resignation: the side left could not checkmate. */
+    resignationDraw: (names: ResignationNames) => string
     moves: Record<NonNullable<MoveName>, string>
   }
   errors: {

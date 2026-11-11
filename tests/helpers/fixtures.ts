@@ -45,13 +45,19 @@ export function emptyRows(): (SimplifiedCell | null)[][] {
   )
 }
 
+/** A game summary. The two names of the time limit always carry the same value, as the API sends them. */
 export function makeSummary(overrides: Partial<GameSummary> = {}): GameSummary {
+  const { tempoTotalPorLadoEmMilisegundos, tempoDeTurnoEmMilisegundos, ...rest } = overrides
+  const limit = tempoTotalPorLadoEmMilisegundos ?? tempoDeTurnoEmMilisegundos ?? -1
   return {
     id: 7,
     ladoIdAtual: 0,
-    ladoBrancoTempoMilisegundosRestante: -1,
-    ladoPretoTempoMilisegundosRestante: -1,
-    tempoDeTurnoEmMilisegundos: -1,
+    ladoBrancoTempoMilisegundosRestante: null,
+    ladoBrancoTempoMilisegundosGasto: 0,
+    ladoPretoTempoMilisegundosRestante: null,
+    ladoPretoTempoMilisegundosGasto: 0,
+    tempoTotalPorLadoEmMilisegundos: limit,
+    tempoDeTurnoEmMilisegundos: limit,
     chequeLadoAtual: false,
     acoesSolicitadas: [],
     empatePropostoPeloLadoId: null,
@@ -59,10 +65,12 @@ export function makeSummary(overrides: Partial<GameSummary> = {}): GameSummary {
     ladosIdDeslogados: [],
     enPassantCasaCaptura: null,
     finalizado: null,
+    motivoFinalizacao: null,
     ladoIdVencedor: null,
+    ladoIdDesistente: null,
     empateReivindicavel: false,
     tipoJogo: 'Humano X Humano',
     tabuleiro: emptyRows(),
-    ...overrides,
+    ...rest,
   }
 }

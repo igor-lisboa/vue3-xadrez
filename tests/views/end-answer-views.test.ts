@@ -6,16 +6,10 @@ import {
   listPromotionPieces,
   listSquares,
 } from '@/api/services/catalogue'
-import { createGame, getGameSummary, listSidesWithoutPlayer } from '@/api/services/games'
-import { joinGame, leaveGame } from '@/api/services/players'
-import { promotePawn } from '@/api/services/moves'
+import { getGameSummary } from '@/api/services/games'
 import { answerProposal, proposeReset } from '@/api/services/proposals'
 import { triggerAi } from '@/api/services/ai'
-import { askText, notify } from '@/services/dialogs'
-import HomeView from '@/views/HomeView.vue'
-import SelectSideView from '@/views/SelectSideView.vue'
-import GameView from '@/views/GameView.vue'
-import PromotePawnView from '@/views/PromotePawnView.vue'
+import { notify } from '@/services/dialogs'
 import EndGameView from '@/views/EndGameView.vue'
 import AnswerProposalView from '@/views/AnswerProposalView.vue'
 import type { SimplifiedCell } from '@/api/types/enums'
@@ -109,6 +103,61 @@ describe('EndGameView', () => {
     await settle()
     expect(wrapper.find('h1').text()).toBe('Resignation: a player left the game')
     expect(wrapper.find('.winner').text()).toBe('Winner: Black')
+  })
+
+  it('says why the side won, for a checkmate and for a time out alike', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({
+        finalizado: 'Vitória: Preto',
+        motivoFinalizacao: 'tempoEsgotado',
+        ladoIdVencedor: 1,
+      }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe('Black wins: White ran out of time')
+    expect(wrapper.find('.winner').text()).toBe('Winner: Black')
+  })
+
+  it('names the side that resigned, from ladoIdDesistente, in a resignation win', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({
+        finalizado: 'Desistência: Um jogador deixou a partida',
+        motivoFinalizacao: 'desistencia',
+        ladoIdVencedor: 1,
+        ladoIdDesistente: 0,
+      }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe('Black wins: White resigned')
+  })
+
+  it('shows a resignation that ends as a draw, naming the side that resigned', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({
+        finalizado: 'Empate: Insuficiência material',
+        motivoFinalizacao: 'desistencia',
+        ladoIdVencedor: null,
+        ladoIdDesistente: 0,
+      }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe(
+      'Draw: White resigned, but Black had no material to checkmate',
+    )
+    expect(wrapper.find('.winner').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Neither side has enough pieces')
+  })
+
+  it('falls back to the ending label when the reason is missing', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(
+      makeSummary({ finalizado: 'Vitória: Branco', motivoFinalizacao: null, ladoIdVencedor: 0 }),
+    )
+    const wrapper = mount(EndGameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.find('h1').text()).toBe('White wins')
   })
 
   it('reads the winner from ladoIdVencedor, not from the ending label', async () => {
