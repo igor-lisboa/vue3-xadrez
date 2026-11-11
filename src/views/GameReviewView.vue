@@ -68,8 +68,10 @@ const positionText = computed(() =>
   <LoadingSpinner v-if="replay.loading.value" :label="messages.common.loading" />
   <template v-else-if="replay.replay.value">
     <h1>{{ review.title }}</h1>
-    <p class="lead">{{ summaryLine }}</p>
-    <p v-for="line in timeUsedLines" :key="line" class="time-used mb-1">{{ line }}</p>
+    <p class="lead review-result">{{ summaryLine }}</p>
+    <div v-if="timeUsedLines.length > 0" class="time-used-grid mx-auto">
+      <p v-for="line in timeUsedLines" :key="line" class="time-used">{{ line }}</p>
+    </div>
     <MaterialSummary
       v-if="replay.material.value"
       class="mb-3"
@@ -120,6 +122,28 @@ const positionText = computed(() =>
 </template>
 
 <style scoped>
+.review-result {
+  margin-bottom: 1rem;
+}
+
+/* The two clocks sit in boxes side by side, so they read as a pair and not as stray lines. */
+.time-used-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  max-width: 656px;
+  margin-bottom: 1.5rem;
+}
+
+.time-used {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #495057;
+  border-radius: 0.5rem;
+  background-color: rgb(255 255 255 / 0.05);
+  font-variant-numeric: tabular-nums;
+}
+
 .review-note {
   max-width: 656px;
 }

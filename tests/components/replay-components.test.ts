@@ -130,6 +130,13 @@ describe('MoveList', () => {
     expect(mountList(0).findAll('button.active')).toHaveLength(0)
   })
 
+  // The other moves are soft chips (move-button); only the move on the board is filled.
+  it('styles every other move as a chip', () => {
+    const wrapper = mountList(2)
+    const chips = wrapper.findAll('button.move-button')
+    expect(chips.length).toBe(wrapper.findAll('button').length - 1)
+  })
+
   it('emits the step of the move that was clicked', async () => {
     const wrapper = mountList(3)
     await wrapper.findAll('button')[1]!.trigger('click')

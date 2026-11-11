@@ -36,7 +36,7 @@ watch(
 
 <template>
   <div ref="container" class="move-list mt-3 mx-auto" :aria-label="labels.title" role="region">
-    <table class="table table-dark table-sm align-middle mb-0">
+    <table class="table table-dark table-sm align-middle mb-0 move-table">
       <thead>
         <tr>
           <th scope="col">#</th>
@@ -52,7 +52,7 @@ watch(
               v-if="move"
               type="button"
               class="btn btn-sm w-100 text-start"
-              :class="move.index + 1 === step ? 'btn-light active' : 'btn-outline-light'"
+              :class="move.index + 1 === step ? 'btn-light active' : 'move-button'"
               :aria-current="move.index + 1 === step ? 'step' : undefined"
               @click="emit('select', move.index + 1)"
             >
@@ -71,5 +71,35 @@ watch(
   max-height: 18rem;
   overflow-y: auto;
   width: min(100%, 656px);
+}
+
+/* Rows are divided by a hairline instead of boxed. Each move is a soft chip; the move on the
+   board is the filled one, so it stands out from the rest. */
+.move-table {
+  --bs-table-bg: transparent;
+  --bs-table-border-color: rgb(255 255 255 / 0.08);
+}
+
+.move-table thead th {
+  color: #adb5bd;
+  font-weight: 500;
+}
+
+.move-table th[scope='row'] {
+  width: 2.5rem;
+  color: #adb5bd;
+  font-weight: 400;
+}
+
+.move-button {
+  background-color: #2b3035;
+  border-color: #2b3035;
+  color: #e9ecef;
+}
+
+.move-button:hover {
+  background-color: #3d4348;
+  border-color: #3d4348;
+  color: #fff;
 }
 </style>
