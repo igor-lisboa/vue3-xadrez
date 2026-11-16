@@ -82,7 +82,8 @@ describe('GameView', () => {
   it('shows the game summary and the board', async () => {
     const wrapper = mount(GameView, { props })
     await settle()
-    expect(wrapper.find('.alert').text()).toContain('Human X Human')
+    expect(wrapper.find('.game-summary').text()).toContain('Human X Human')
+    expect(wrapper.find('.game-status-bar').exists()).toBe(true)
     expect(wrapper.findAll('.board-house')).toHaveLength(64)
     expect(triggerAi).toHaveBeenCalled()
   })

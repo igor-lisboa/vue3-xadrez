@@ -63,6 +63,9 @@ const opponentMoveText = computed(() => {
       )
     : null
 })
+const opponentMoveOnBoard = computed(() =>
+  summary.value?.ladoIdAtual === props.sideId ? opponentMove.value : null,
+)
 
 async function refreshAfterMove(): Promise<void> {
   await Promise.all([refresh(), refreshOpponentMove()])
@@ -109,10 +112,11 @@ onMounted(async () => {
 <template>
   <LoadingSpinner v-if="!summary || busy" :label="messages.common.loading" />
   <template v-else>
-    <div class="alert alert-light" role="alert">{{ summary.id }} | {{ gameTypeName }}</div>
-
-    <div v-if="summary.ladoIdAtual === sideId && movesReady" class="alert alert-success py-2" role="status">
-      {{ messages.game.yourTurn }}
+    <div class="game-status-bar mx-auto">
+      <span class="game-summary">{{ summary.id }} | {{ gameTypeName }}</span>
+      <span v-if="summary.ladoIdAtual === sideId && movesReady" class="turn-status" role="status">
+        {{ messages.game.yourTurn }}
+      </span>
     </div>
 
     <DrawOfferPanel
@@ -133,16 +137,21 @@ onMounted(async () => {
       :highlight-turn="summary.ladoIdAtual === sideId && movesReady"
       :spectator-only="spectatorOnly"
       :move-labels="messages.labels.moves"
+      :last-move="opponentMoveOnBoard"
       @select="selectHouse"
     />
 
-    <div
-      v-if="opponentMoveText"
-      class="alert alert-secondary py-2 mx-auto opponent-last-move"
-      role="status"
-    >
-      {{ opponentMoveText }}
-    </div>
+    <p v-if="opponentMoveText" class="opponent-last-move mx-auto" role="status">
+      <span class="move-route" aria-hidden="true">
+        <span class="route-square route-origin"></span>
+        <span class="route-arrow">→</span>
+        <span
+          class="route-square"
+          :class="opponentMove?.captured ? 'route-capture' : 'route-destination'"
+        ></span>
+      </span>
+      <span>{{ opponentMoveText }}</span>
+    </p>
 
     <ClockPanel
       v-if="timeLimitOf(summary) !== NO_TIME_LIMIT"
@@ -167,7 +176,82 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.opponent-last-move {
+.game-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   max-width: 656px;
+  margin-bottom: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #495057;
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.game-summary {
+  color: #dee2e6;
+}
+
+.turn-status {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid #75b798;
+  border-radius: 999px;
+  background: #0f5132;
+  color: #d1e7dd;
+  font-weight: 600;
+}
+
+.opponent-last-move {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  max-width: 656px;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #495057;
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.05);
+  color: #dee2e6;
+}
+
+.move-route {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.route-square {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.15rem;
+}
+
+.route-origin {
+  background: #ffc107;
+}
+
+.route-destination {
+  background: #0dcaf0;
+}
+
+.route-capture {
+  background: #dc3545;
+}
+
+.route-arrow {
+  color: #adb5bd;
+}
+
+@media (max-width: 420px) {
+  .game-status-bar,
+  .opponent-last-move {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 </style>

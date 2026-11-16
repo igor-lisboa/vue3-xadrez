@@ -180,6 +180,26 @@ describe('ChessBoard', () => {
       expect.arrayContaining(['active-side-border', 'spectator-only']),
     )
   })
+
+  it('outlines the previous route without replacing board state classes', async () => {
+    const wrapper = mount(ChessBoard, {
+      props: {
+        houses: houses(),
+        highlightTurn: false,
+        spectatorOnly: false,
+        moveLabels: en.labels.moves,
+        lastMove: { from: 'A8', to: 'B8', captured: null },
+      },
+    })
+    const cells = wrapper.findAll('.board-house')
+    expect(cells[0]?.classes()).toEqual(expect.arrayContaining(['house-white', 'last-move-origin']))
+    expect(cells[1]?.classes()).toEqual(
+      expect.arrayContaining(['house-capture', 'last-move-destination']),
+    )
+
+    await wrapper.setProps({ lastMove: { from: 'A8', to: 'B8', captured: 'Peão' } })
+    expect(wrapper.findAll('.board-house')[1]?.classes()).toContain('last-move-capture')
+  })
 })
 
 describe('ClockPanel', () => {

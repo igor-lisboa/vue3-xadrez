@@ -10,7 +10,7 @@ import { en } from '@/i18n/messages/en'
 import { notify } from '@/services/dialogs'
 import GameView from '@/views/GameView.vue'
 import { makeSummary, pieceTypes, squares } from '../helpers/fixtures'
-import { boardAfter, makeHistory, played } from '../helpers/history'
+import { boardAfter, makeHistory, piece, played } from '../helpers/history'
 import { startingPosition } from '@/domain/replay'
 
 const { push, handlers } = vi.hoisted(() => ({
@@ -88,11 +88,34 @@ beforeEach(() => {
 
 describe('GameView draw offers', () => {
   it('shows the opponent’s latest move with the localized piece and squares', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ ladoIdAtual: 1 }))
     vi.mocked(getGameHistory).mockResolvedValue(
       makeHistory([played(0, 'E2', 'E4')], boardAfter({ E2: null, E4: 'Peão-0' })),
     )
     const wrapper = await open(1)
     expect(wrapper.text()).toContain(en.game.opponentLastMove('Pawn E2 → E4'))
+    expect(wrapper.find('[title="E2"]').classes()).toContain('last-move-origin')
+    expect(wrapper.find('[title="E4"]').classes()).toContain('last-move-destination')
+    expect(wrapper.find('.route-origin').exists()).toBe(true)
+    expect(wrapper.find('.route-destination').exists()).toBe(true)
+  })
+
+  it('uses red for the destination when the opponent captured a piece', async () => {
+    vi.mocked(getGameSummary).mockResolvedValue(makeSummary({ ladoIdAtual: 1 }))
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory(
+        [
+          played(0, 'E2', 'E4'),
+          played(1, 'D7', 'D5'),
+          played(2, 'E4', 'D5', { captured: piece('Peão', 1) }),
+        ],
+        boardAfter({ E2: null, E4: null, D7: null, D5: 'Peão-0' }),
+      ),
+    )
+    const wrapper = await open(1)
+
+    expect(wrapper.find('[title="D5"]').classes()).toContain('last-move-capture')
+    expect(wrapper.find('.route-capture').exists()).toBe(true)
   })
 
   it('keeps the receiver on the board, with the offer to accept or decline', async () => {
@@ -100,7 +123,7 @@ describe('GameView draw offers', () => {
     const wrapper = await open(1)
     expect(push).not.toHaveBeenCalled()
     expect(wrapper.find('.chess-board').exists()).toBe(true)
-    expect(wrapper.get('[role="status"]').text()).toBe(en.game.yourTurn)
+    expect(wrapper.get('.turn-status').text()).toBe(en.game.yourTurn)
     const panel = wrapper.find('.draw-offer')
     expect(panel.text()).toContain(en.answer.received.empate)
     expect(panel.text()).toContain(en.game.moveDeclinesDraw)

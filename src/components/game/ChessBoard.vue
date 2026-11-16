@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MoveName } from '@/api/types/enums'
 import type { BoardHouse } from '@/domain/types'
+import type { HistoryMove } from '@/domain/replay'
 import ChessPiece from './ChessPiece.vue'
 import { boardHouseClasses } from './board-house-classes'
 
@@ -12,6 +13,8 @@ const props = defineProps<{
   spectatorOnly: boolean
   /** Names of the special moves in the language in use, shown in the square tooltip. */
   moveLabels: Record<NonNullable<MoveName>, string>
+  /** Move to outline without replacing selection and legal-move colours. */
+  lastMove?: Pick<HistoryMove, 'from' | 'to' | 'captured'> | null
 }>()
 
 const emit = defineEmits<{ select: [index: number] }>()
@@ -20,6 +23,12 @@ function houseTitle(house: BoardHouse): string {
   return house.movementName === null
     ? house.house
     : `${house.house} | ${props.moveLabels[house.movementName]}`
+}
+
+function lastMoveClasses(house: BoardHouse): string[] {
+  if (house.house === props.lastMove?.from) return ['last-move-origin']
+  if (house.house !== props.lastMove?.to) return []
+  return [props.lastMove.captured ? 'last-move-capture' : 'last-move-destination']
 }
 </script>
 
@@ -31,7 +40,7 @@ function houseTitle(house: BoardHouse): string {
     <div
       v-for="(house, index) in houses"
       :key="index"
-      :class="boardHouseClasses(house)"
+      :class="[boardHouseClasses(house), lastMoveClasses(house)]"
       :title="houseTitle(house)"
       @click="emit('select', index)"
     >
@@ -106,5 +115,18 @@ function houseTitle(house: BoardHouse): string {
 
 .house-check {
   background-color: darkred;
+}
+
+/* The previous route stays visible while normal selection colours remain available. */
+.last-move-origin {
+  box-shadow: inset 0 0 0 4px #ffc107;
+}
+
+.last-move-destination {
+  box-shadow: inset 0 0 0 4px #0dcaf0;
+}
+
+.last-move-capture {
+  box-shadow: inset 0 0 0 4px #dc3545;
 }
 </style>
