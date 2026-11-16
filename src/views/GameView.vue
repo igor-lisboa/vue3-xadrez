@@ -114,7 +114,12 @@ onMounted(async () => {
   <template v-else>
     <div class="game-status-bar mx-auto">
       <span class="game-summary">{{ summary.id }} | {{ gameTypeName }}</span>
-      <span v-if="summary.ladoIdAtual === sideId && movesReady" class="turn-status" role="status">
+      <span
+        class="turn-status"
+        :class="{ 'turn-status-hidden': summary.ladoIdAtual !== sideId || !movesReady }"
+        :aria-hidden="summary.ladoIdAtual !== sideId || !movesReady"
+        role="status"
+      >
         {{ messages.game.yourTurn }}
       </span>
     </div>
@@ -201,6 +206,11 @@ onMounted(async () => {
   background: #0f5132;
   color: #d1e7dd;
   font-weight: 600;
+}
+
+/* Keep the same space while turns change or legal moves are loading. */
+.turn-status-hidden {
+  visibility: hidden;
 }
 
 .opponent-last-move {

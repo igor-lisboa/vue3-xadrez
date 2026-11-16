@@ -4,6 +4,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
 import { getGameHistory, getGameSummary } from '@/api/services/games'
 import { leaveGame } from '@/api/services/players'
+import { listSidePossibleMoves } from '@/api/services/moves'
 import { SOCKET_EVENTS } from '@/api/socket-events'
 import { notify } from '@/services/dialogs'
 import GameView from '@/views/GameView.vue'
@@ -55,6 +56,7 @@ beforeEach(() => {
   handlers.clear()
   vi.mocked(listSquares).mockResolvedValue(squares)
   vi.mocked(listPieceTypes).mockResolvedValue(pieceTypes)
+  vi.mocked(listSidePossibleMoves).mockResolvedValue([])
   vi.mocked(getGameSummary).mockResolvedValue(makeSummary())
   vi.mocked(getGameHistory).mockResolvedValue(makeHistory([], startingPosition()))
 })
@@ -76,6 +78,46 @@ const endPayload = {
 }
 
 describe('GameView socket events', () => {
+  it('keeps the badge and board mounted across turns and legal-move loading', async () => {
+    vi.mocked(getGameSummary)
+      .mockResolvedValueOnce(makeSummary({ ladoIdAtual: 1 }))
+      .mockResolvedValueOnce(makeSummary({ ladoIdAtual: 0 }))
+      .mockResolvedValueOnce(makeSummary({ ladoIdAtual: 1 }))
+    let finishLoading = () => {}
+    vi.mocked(listSidePossibleMoves).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishLoading = () => resolve([])
+      }),
+    )
+    const wrapper = mount(GameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    const badge = wrapper.get('.turn-status')
+    const board = wrapper.get('.chess-board').element
+    expect(badge.classes()).toContain('turn-status-hidden')
+    expect(badge.attributes('aria-hidden')).toBe('true')
+
+    handlers.get(SOCKET_EVENTS.moveMade)?.({ ...clocks, chequeLadoAtual: false })
+    await settle()
+    expect(badge.classes()).toContain('turn-status-hidden')
+    expect(wrapper.get('.chess-board').classes()).not.toContain('active-side-border')
+
+    finishLoading()
+    await settle()
+    expect(badge.classes()).not.toContain('turn-status-hidden')
+    expect(badge.attributes('aria-hidden')).toBe('false')
+    expect(badge.text()).toBe(en.game.yourTurn)
+    expect(wrapper.get('.chess-board').classes()).toContain('active-side-border')
+
+    handlers.get(SOCKET_EVENTS.moveMade)?.({ ...clocks, chequeLadoAtual: false })
+    await settle()
+    expect(wrapper.get('.turn-status').element).toBe(badge.element)
+    expect(badge.classes()).toContain('turn-status-hidden')
+    expect(badge.attributes('aria-hidden')).toBe('true')
+    expect(wrapper.get('.chess-board').element).toBe(board)
+    expect(wrapper.get('.chess-board').classes()).not.toContain('active-side-border')
+    wrapper.unmount()
+  })
+
   it('updates the opponent move description when the move event arrives', async () => {
     vi.mocked(getGameHistory)
       .mockResolvedValueOnce(makeHistory([], startingPosition()))

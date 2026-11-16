@@ -69,12 +69,15 @@ function lastMoveClasses(house: BoardHouse): string[] {
   border: 8px solid greenyellow;
 }
 
-.board-house:hover {
-  background-color: lightblue;
-}
+/* Touch browsers can keep hover active after a tap, masking the square's real state. */
+@media (hover: hover) and (pointer: fine) {
+  .board-house:hover {
+    background-color: lightblue;
+  }
 
-.board-house:active {
-  background-color: blueviolet;
+  .board-house:active {
+    background-color: blueviolet;
+  }
 }
 
 .spectator-only {
