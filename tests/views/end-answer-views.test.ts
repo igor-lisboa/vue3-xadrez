@@ -38,7 +38,7 @@ vi.mock('@/api/services/games', () => ({
 }))
 vi.mock('@/api/services/players', () => ({ joinGame: vi.fn(), leaveGame: vi.fn() }))
 vi.mock('@/api/services/moves', () => ({
-  listPossibleMoves: vi.fn(),
+  listSidePossibleMoves: vi.fn(),
   makeMove: vi.fn(),
   promotePawn: vi.fn(),
 }))

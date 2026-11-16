@@ -98,6 +98,8 @@ export interface Messages {
     moveDeclinesDraw: string
     opponentJoined: string
     connectionError: string
+    yourTurn: string
+    opponentLastMove: (move: string) => string
   }
   /** Translations of the values the API sends in Portuguese. */
   labels: {

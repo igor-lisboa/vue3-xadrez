@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
-import { getGameSummary } from '@/api/services/games'
-import { listPossibleMoves, makeMove } from '@/api/services/moves'
+import { getGameHistory, getGameSummary } from '@/api/services/games'
+import { listSidePossibleMoves, makeMove } from '@/api/services/moves'
 import { answerProposal, proposeDraw } from '@/api/services/proposals'
 import { SOCKET_EVENTS } from '@/api/socket-events'
 import type { PossibleMove } from '@/api/types/move'
@@ -10,6 +10,8 @@ import { en } from '@/i18n/messages/en'
 import { notify } from '@/services/dialogs'
 import GameView from '@/views/GameView.vue'
 import { makeSummary, pieceTypes, squares } from '../helpers/fixtures'
+import { boardAfter, makeHistory, played } from '../helpers/history'
+import { startingPosition } from '@/domain/replay'
 
 const { push, handlers } = vi.hoisted(() => ({
   push: vi.fn(async () => undefined),
@@ -22,9 +24,9 @@ vi.mock('vue-router', async (importOriginal) => ({
   useRoute: () => ({ name: 'game', params: {} }),
 }))
 vi.mock('@/api/services/catalogue', () => ({ listPieceTypes: vi.fn(), listSquares: vi.fn() }))
-vi.mock('@/api/services/games', () => ({ getGameSummary: vi.fn() }))
+vi.mock('@/api/services/games', () => ({ getGameHistory: vi.fn(), getGameSummary: vi.fn() }))
 vi.mock('@/api/services/players', () => ({ leaveGame: vi.fn() }))
-vi.mock('@/api/services/moves', () => ({ listPossibleMoves: vi.fn(), makeMove: vi.fn() }))
+vi.mock('@/api/services/moves', () => ({ listSidePossibleMoves: vi.fn(), makeMove: vi.fn() }))
 vi.mock('@/api/services/proposals', () => ({ proposeDraw: vi.fn(), answerProposal: vi.fn() }))
 vi.mock('@/api/services/ai', () => ({ triggerAi: vi.fn(async () => undefined) }))
 vi.mock('@/services/dialogs', () => ({ notify: vi.fn(), askText: vi.fn() }))
@@ -79,16 +81,26 @@ beforeEach(() => {
   vi.mocked(listSquares).mockResolvedValue(squares)
   vi.mocked(listPieceTypes).mockResolvedValue(pieceTypes)
   vi.mocked(getGameSummary).mockResolvedValue(makeSummary())
-  vi.mocked(listPossibleMoves).mockResolvedValue([toE4])
+  vi.mocked(getGameHistory).mockResolvedValue(makeHistory([], startingPosition()))
+  vi.mocked(listSidePossibleMoves).mockResolvedValue([toE4])
   vi.mocked(makeMove).mockResolvedValue(undefined)
 })
 
 describe('GameView draw offers', () => {
+  it('shows the opponent’s latest move with the localized piece and squares', async () => {
+    vi.mocked(getGameHistory).mockResolvedValue(
+      makeHistory([played(0, 'E2', 'E4')], boardAfter({ E2: null, E4: 'Peão-0' })),
+    )
+    const wrapper = await open(1)
+    expect(wrapper.text()).toContain(en.game.opponentLastMove('Pawn E2 → E4'))
+  })
+
   it('keeps the receiver on the board, with the offer to accept or decline', async () => {
     vi.mocked(getGameSummary).mockResolvedValue(offeredToBlack)
     const wrapper = await open(1)
     expect(push).not.toHaveBeenCalled()
     expect(wrapper.find('.chess-board').exists()).toBe(true)
+    expect(wrapper.get('[role="status"]').text()).toBe(en.game.yourTurn)
     const panel = wrapper.find('.draw-offer')
     expect(panel.text()).toContain(en.answer.received.empate)
     expect(panel.text()).toContain(en.game.moveDeclinesDraw)
@@ -119,6 +131,7 @@ describe('GameView draw offers', () => {
     expect(wrapper.find('.draw-offer').exists()).toBe(true)
     await playE2E4(wrapper)
     expect(makeMove).toHaveBeenCalledWith(7, 0, 'E2', 'E4')
+    expect(getGameHistory).toHaveBeenCalledTimes(2)
     expect(wrapper.find('.draw-offer').exists()).toBe(false)
   })
 

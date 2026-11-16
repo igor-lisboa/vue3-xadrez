@@ -16,12 +16,14 @@ import { useChessBoard } from '@/composables/useChessBoard'
 import { useDrawActions } from '@/composables/useDrawActions'
 import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
+import { useOpponentLastMove } from '@/composables/useOpponentLastMove'
 import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
 import { useTurnClock } from '@/composables/useTurnClock'
 import { timeLimitOf } from '@/domain/clock'
 import { AI_VS_AI_GAME_LABEL, NO_TIME_LIMIT } from '@/domain/constants'
 import { translateGameType } from '@/domain/labels'
+import { describeMove } from '@/domain/move-text'
 import { notify } from '@/services/dialogs'
 
 const props = defineProps<{ gameId: number; sideId: SideId }>()
@@ -29,16 +31,20 @@ const props = defineProps<{ gameId: number; sideId: SideId }>()
 const { messages } = useLocale()
 const router = useRouter()
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
+const { move: opponentMove, refresh: refreshOpponentMove } = useOpponentLastMove(
+  props.gameId,
+  props.sideId,
+)
 const { data: squares } = useLoader<Square[]>(listSquares, [])
 const { data: pieces } = useLoader<PieceType[]>(listPieceTypes, [])
 const draw = useDrawActions({ gameId: props.gameId, sideId: props.sideId, summary, refresh })
-const { houses, selectHouse } = useChessBoard({
+const { houses, selectHouse, movesReady } = useChessBoard({
   gameId: props.gameId,
   sideId: props.sideId,
   summary,
   squares,
   pieces,
-  onMoveAttempted: refresh,
+  onMoveAttempted: refreshAfterMove,
   playMove: draw.playMove,
 })
 const { whiteMs, blackMs, applyClocks } = useTurnClock(summary, () => void refresh())
@@ -49,6 +55,18 @@ const spectatorOnly = computed(() => summary.value?.tipoJogo === AI_VS_AI_GAME_L
 const gameTypeName = computed(() =>
   translateGameType(summary.value?.tipoJogo ?? '', messages.value.labels.playerTypes),
 )
+const opponentMoveText = computed(() => {
+  const move = opponentMove.value
+  return move
+    ? messages.value.game.opponentLastMove(
+        describeMove(move, messages.value.labels.pieces, messages.value.labels.moves),
+      )
+    : null
+})
+
+async function refreshAfterMove(): Promise<void> {
+  await Promise.all([refresh(), refreshOpponentMove()])
+}
 
 useGameSocket(props.gameId, props.sideId, {
   opponentJoined: () => {
@@ -58,7 +76,7 @@ useGameSocket(props.gameId, props.sideId, {
   // The event carries the clocks as they are now: show them at once, then reload the rest.
   moveMade: (payload) => {
     applyClocks(payload)
-    return refresh()
+    return refreshAfterMove()
   },
   drawProposed: refresh,
   drawAnswered: refresh,
@@ -82,6 +100,7 @@ async function resign(): Promise<void> {
 
 onMounted(async () => {
   await refresh()
+  void refreshOpponentMove()
   // The API runs the AI player when asked. A failure here does not block the game.
   await triggerAi().catch((error: unknown) => console.warn('AI trigger failed', error))
 })
@@ -91,6 +110,10 @@ onMounted(async () => {
   <LoadingSpinner v-if="!summary || busy" :label="messages.common.loading" />
   <template v-else>
     <div class="alert alert-light" role="alert">{{ summary.id }} | {{ gameTypeName }}</div>
+
+    <div v-if="summary.ladoIdAtual === sideId && movesReady" class="alert alert-success py-2" role="status">
+      {{ messages.game.yourTurn }}
+    </div>
 
     <DrawOfferPanel
       v-if="draw.offer.value"
@@ -107,11 +130,19 @@ onMounted(async () => {
 
     <ChessBoard
       :houses="houses"
-      :highlight-turn="summary.ladoIdAtual === sideId"
+      :highlight-turn="summary.ladoIdAtual === sideId && movesReady"
       :spectator-only="spectatorOnly"
       :move-labels="messages.labels.moves"
       @select="selectHouse"
     />
+
+    <div
+      v-if="opponentMoveText"
+      class="alert alert-secondary py-2 mx-auto opponent-last-move"
+      role="status"
+    >
+      {{ opponentMoveText }}
+    </div>
 
     <ClockPanel
       v-if="timeLimitOf(summary) !== NO_TIME_LIMIT"
@@ -134,3 +165,9 @@ onMounted(async () => {
     />
   </template>
 </template>
+
+<style scoped>
+.opponent-last-move {
+  max-width: 656px;
+}
+</style>

@@ -4,14 +4,13 @@ import type { PossibleMove } from '../types/move'
 import { http } from '../http'
 import { sideHeaders } from './side-headers'
 
-/** Legal moves of the piece on a square. */
-export async function listPossibleMoves(
+/** All legal moves available to the requesting side. */
+export async function listSidePossibleMoves(
   gameId: number,
   sideId: SideId,
-  square: SquareName,
 ): Promise<PossibleMove[]> {
   const { data } = await http.get<ApiEnvelope<PossibleMove[]>>(
-    `/jogos/${gameId}/pecas/${square}/possiveis-jogadas`,
+    `/jogos/${gameId}/possiveis-jogadas`,
     sideHeaders(sideId),
   )
   return data.data

@@ -91,6 +91,8 @@ export const fr: Messages = {
     moveDeclinesDraw: 'Jouer un coup à la place refuse la proposition.',
     opponentJoined: 'Votre adversaire a rejoint la partie !',
     connectionError: 'Erreur de connexion avec le serveur.',
+    yourTurn: 'À vous de jouer',
+    opponentLastMove: (move) => `Dernier coup de votre adversaire : ${move}`,
   },
   labels: {
     sides: { 0: 'Blancs', 1: 'Noirs' },

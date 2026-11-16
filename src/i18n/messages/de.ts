@@ -91,6 +91,8 @@ export const de: Messages = {
     moveDeclinesDraw: 'Wenn du stattdessen ziehst, lehnst du das Angebot ab.',
     opponentJoined: 'Der Gegner ist dem Spiel beigetreten!',
     connectionError: 'Verbindungsfehler mit dem Server.',
+    yourTurn: 'Du bist am Zug',
+    opponentLastMove: (move) => `Letzter Zug des Gegners: ${move}`,
   },
   labels: {
     sides: { 0: 'Weiß', 1: 'Schwarz' },

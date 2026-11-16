@@ -13,7 +13,7 @@ import {
   listSidesWithoutPlayer,
 } from '@/api/services/games'
 import { joinGame, leaveGame } from '@/api/services/players'
-import { listPossibleMoves, makeMove, promotePawn } from '@/api/services/moves'
+import { listSidePossibleMoves, makeMove, promotePawn } from '@/api/services/moves'
 import { answerProposal, proposeDraw, proposeReset } from '@/api/services/proposals'
 import { triggerAi } from '@/api/services/ai'
 
@@ -88,10 +88,20 @@ describe('player services', () => {
 })
 
 describe('move services', () => {
-  it('lists the possible moves with the side header', async () => {
-    vi.mocked(http.get).mockResolvedValue(envelope([]))
-    await listPossibleMoves(4, 1, 'E2')
-    expect(http.get).toHaveBeenCalledWith('/jogos/4/pecas/E2/possiveis-jogadas', {
+  it('lists every legal move with the side header', async () => {
+    const moves = [
+      {
+        casaOrigem: { casa: 'E2', linha: 6, coluna: 4 },
+        casaDestino: { casa: 'E4', linha: 4, coluna: 4 },
+        nome: null,
+        peca: 'Peão',
+        captura: false,
+        capturavel: false,
+      },
+    ]
+    vi.mocked(http.get).mockResolvedValue(envelope(moves))
+    await expect(listSidePossibleMoves(4, 1)).resolves.toEqual(moves)
+    expect(http.get).toHaveBeenCalledWith('/jogos/4/possiveis-jogadas', {
       headers: { lado: 1 },
     })
   })

@@ -90,6 +90,8 @@ export const en: Messages = {
     moveDeclinesDraw: 'Making a move instead declines the offer.',
     opponentJoined: 'The opponent joined the game!',
     connectionError: 'Connection error with the server.',
+    yourTurn: 'Your turn',
+    opponentLastMove: (move) => `Opponent's last move: ${move}`,
   },
   labels: {
     sides: { 0: 'White', 1: 'Black' },

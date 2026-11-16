@@ -2,12 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
-import { getGameSummary } from '@/api/services/games'
+import { getGameHistory, getGameSummary } from '@/api/services/games'
 import { leaveGame } from '@/api/services/players'
 import { SOCKET_EVENTS } from '@/api/socket-events'
 import { notify } from '@/services/dialogs'
 import GameView from '@/views/GameView.vue'
 import { makeSummary, pieceTypes, squares } from '../helpers/fixtures'
+import { boardAfter, makeHistory, played } from '../helpers/history'
+import { startingPosition } from '@/domain/replay'
+import { en } from '@/i18n/messages/en'
 
 const { push, handlers } = vi.hoisted(() => ({
   push: vi.fn(async () => undefined),
@@ -25,9 +28,9 @@ vi.mock('@/api/services/catalogue', () => ({
   listPromotionPieces: vi.fn(),
   listSquares: vi.fn(),
 }))
-vi.mock('@/api/services/games', () => ({ getGameSummary: vi.fn() }))
+vi.mock('@/api/services/games', () => ({ getGameHistory: vi.fn(), getGameSummary: vi.fn() }))
 vi.mock('@/api/services/players', () => ({ joinGame: vi.fn(), leaveGame: vi.fn() }))
-vi.mock('@/api/services/moves', () => ({ listPossibleMoves: vi.fn(), makeMove: vi.fn() }))
+vi.mock('@/api/services/moves', () => ({ listSidePossibleMoves: vi.fn(), makeMove: vi.fn() }))
 vi.mock('@/api/services/proposals', () => ({
   proposeDraw: vi.fn(),
   proposeReset: vi.fn(),
@@ -53,6 +56,7 @@ beforeEach(() => {
   vi.mocked(listSquares).mockResolvedValue(squares)
   vi.mocked(listPieceTypes).mockResolvedValue(pieceTypes)
   vi.mocked(getGameSummary).mockResolvedValue(makeSummary())
+  vi.mocked(getGameHistory).mockResolvedValue(makeHistory([], startingPosition()))
 })
 
 /** The clocks the API sends with an event: 1:01 for White and 0:52 for Black, both left. */
@@ -72,6 +76,25 @@ const endPayload = {
 }
 
 describe('GameView socket events', () => {
+  it('updates the opponent move description when the move event arrives', async () => {
+    vi.mocked(getGameHistory)
+      .mockResolvedValueOnce(makeHistory([], startingPosition()))
+      .mockResolvedValueOnce(
+        makeHistory(
+          [played(0, 'E2', 'E4'), played(1, 'E7', 'E5')],
+          boardAfter({ E2: null, E4: 'Peão-0', E7: null, E5: 'Peão-1' }),
+        ),
+      )
+    const wrapper = mount(GameView, { props: { gameId: 7, sideId: 0 } })
+    await settle()
+    expect(wrapper.text()).not.toContain(en.game.opponentLastMove('Pawn E7 → E5'))
+
+    handlers.get(SOCKET_EVENTS.moveMade)?.({ ...clocks, chequeLadoAtual: false })
+    await settle()
+
+    expect(wrapper.text()).toContain(en.game.opponentLastMove('Pawn E7 → E5'))
+  })
+
   it('reloads the game when a move is made', async () => {
     mount(GameView, { props: { gameId: 7, sideId: 0 } })
     await settle()

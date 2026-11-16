@@ -92,6 +92,8 @@ export const pt: Messages = {
     moveDeclinesDraw: 'Se fizer uma jogada, a proposta é recusada.',
     opponentJoined: 'O adversário entrou no jogo!',
     connectionError: 'Erro de ligação com o servidor.',
+    yourTurn: 'É a sua vez',
+    opponentLastMove: (move) => `Última jogada do adversário: ${move}`,
   },
   labels: {
     sides: { 0: 'Brancas', 1: 'Pretas' },

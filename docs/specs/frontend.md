@@ -80,16 +80,18 @@ Layout, top to bottom:
 1. An information bar: game id and game type, for example `7 | Human X AI`.
 2. The open draw offer, if there is one (see Draws below).
 3. The board, 8 × 8 squares. The board is shown from the player's side: Black sees it reversed.
-4. The clocks (White, Black), only for games with a time limit.
-5. The buttons **Resign** and **Offer draw** (or **Claim draw**, see below).
-6. On the player's turn, the option **Claim a draw with my next move**.
+4. The latest move made by the opponent, shown as a localized piece and move description when one is available.
+5. The clocks (White, Black), only for games with a time limit.
+6. The buttons **Resign** and **Offer draw** (or **Claim draw**, see below).
+7. On the player's turn, the option **Claim a draw with my next move**.
 
 Board behaviour:
 
-- **Select and move.** Clicking a piece of the player's side highlights its legal moves. Clicking a highlighted square plays that move, then reloads the game. Clicking another square clears the selection and selects that square's piece instead.
-- **Legal moves.** The API lists the legal moves of the selected piece. A destination shows a green square; a capture shows a red square. The square tooltip shows the square name and, for special moves, the move name (for example "Short castling").
+- **Select and move.** When it becomes the player's turn, the frontend first loads all legal moves for that side in one request. The board becomes active only after that request succeeds, so a fast player can select a piece immediately without waiting for a request on each click. Clicking a piece of the player's side highlights its cached legal moves. Clicking a highlighted square plays that move, then reloads the game and legal moves. Clicking another square clears the selection and selects that square's piece instead.
+- **Legal moves.** The API lists all legal moves for the requesting side. A destination shows a green square; a capture shows a red square. The square tooltip shows the square name and, for special moves, the move name (for example "Short castling").
 - **Check.** The king of the side on turn is shown dark red while that side is in check.
-- **Turn.** When it is the player's turn, the board border is bright green.
+- **Turn.** When it is the player's turn and the legal moves have loaded successfully, the board border is bright green. A brief, non-blocking turn message appears at the same time; it does not require dismissal.
+- **Opponent's last move.** The game shows the latest move by the other side, with the piece name, origin and destination, and any capture, promotion or special-move detail. It uses the same localized description as Game review and refreshes after a move.
 - **AI X AI.** The board cannot be clicked; it only shows the game as it progresses.
 - Each square shows its piece as a picture from the piece set (section 4).
 
@@ -198,11 +200,11 @@ The frontend's services, one file per area under `src/api/services/`:
 | Catalogue | `GET /tipos-de-peca/promocao-peao` | Promotion choices |
 | Games | `POST /jogos` | Create a game, with `tempoTotalPorLadoEmMilisegundos` |
 | Games | `GET /jogos/{id}/simples?tabuleiroSuperSimplificado=true` | Game state, with the winner (`ladoIdVencedor`), the resigning side (`ladoIdDesistente`), the clocks and `empateReivindicavel` |
-| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`), the reason (`motivoFinalizacao`), the winner, the resigning side, the clocks and the side on the move, for the game review |
+| Games | `GET /jogos/{id}` | Moves of both sides, the final board, the result (`finalizado.tipo`), the reason (`motivoFinalizacao`), the winner, the resigning side, the clocks and the side on the move, for Game review and the latest opponent move on Game |
 | Games | `GET /jogos/{id}/lado-sem-jogador` | Free sides |
 | Players | `POST /jogos/{id}/jogadores` | Join a side (`tipoId` 0, human) |
 | Players | `DELETE /jogos/{id}/jogadores/{ladoId}` with header `lado` = `ladoId` | Resign |
-| Moves | `GET /jogos/{id}/pecas/{casa}/possiveis-jogadas` | Legal moves of a piece |
+| Moves | `GET /jogos/{id}/possiveis-jogadas` with header `lado` = 0 or 1 | All legal moves for the requesting side |
 | Moves | `POST /jogos/{id}/pecas/{origem}/move/{destino}` | Play a move |
 | Moves | `POST /jogos/{id}/promove-peao/{pecaId}` | Promote a pawn |
 | Proposals | `PUT /jogos/{id}/empate/propoe`, no body, or `{ origem, destino }` | Offer or claim a draw; claim for the next move |
@@ -288,7 +290,7 @@ The socket connects to the API base URL with the query `jogador = "{gameId}-{sid
 | Event | Handled by | Effect |
 | --- | --- | --- |
 | `adversarioEntrou` | Game | Notify the player, reload |
-| `jogadaRealizada` | Game | The clocks in the payload are shown at once, then the game is reloaded (this also refreshes `empateReivindicavel`, which the frontend reads from the reloaded state) |
+| `jogadaRealizada` | Game | The clocks in the payload are shown at once, then the game and move history are reloaded (this also refreshes `empateReivindicavel`, which the frontend reads from the reloaded state, and the latest opponent move) |
 | `empateProposto` | Game, End game | Reload (Game); End game returns to Game |
 | `empatePropostoResposta` | Game, End game | Reload (Game); End game returns to Game. Also sent, with no payload, to the proposer when the opponent moved instead of answering |
 | `resetProposto` | Game, End game | Same as `empateProposto` |

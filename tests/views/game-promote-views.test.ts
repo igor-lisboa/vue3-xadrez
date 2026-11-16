@@ -6,7 +6,7 @@ import {
   listPromotionPieces,
   listSquares,
 } from '@/api/services/catalogue'
-import { getGameSummary } from '@/api/services/games'
+import { getGameHistory, getGameSummary } from '@/api/services/games'
 import { leaveGame } from '@/api/services/players'
 import { promotePawn } from '@/api/services/moves'
 import { proposeDraw } from '@/api/services/proposals'
@@ -15,6 +15,8 @@ import { notify } from '@/services/dialogs'
 import GameView from '@/views/GameView.vue'
 import PromotePawnView from '@/views/PromotePawnView.vue'
 import { makeSummary, gameTypes, pieceTypes, squares } from '../helpers/fixtures'
+import { makeHistory } from '../helpers/history'
+import { startingPosition } from '@/domain/replay'
 
 const { push, routeState } = vi.hoisted(() => ({
   push: vi.fn(async () => undefined),
@@ -34,12 +36,13 @@ vi.mock('@/api/services/catalogue', () => ({
 }))
 vi.mock('@/api/services/games', () => ({
   createGame: vi.fn(),
+  getGameHistory: vi.fn(),
   getGameSummary: vi.fn(),
   listSidesWithoutPlayer: vi.fn(),
 }))
 vi.mock('@/api/services/players', () => ({ joinGame: vi.fn(), leaveGame: vi.fn() }))
 vi.mock('@/api/services/moves', () => ({
-  listPossibleMoves: vi.fn(),
+  listSidePossibleMoves: vi.fn(),
   makeMove: vi.fn(),
   promotePawn: vi.fn(),
 }))
@@ -69,6 +72,7 @@ beforeEach(() => {
   vi.mocked(listPieceTypes).mockResolvedValue(pieceTypes)
   vi.mocked(listPromotionPieces).mockResolvedValue(pieceTypes.slice(1, 5))
   vi.mocked(getGameSummary).mockResolvedValue(makeSummary())
+  vi.mocked(getGameHistory).mockResolvedValue(makeHistory([], startingPosition()))
   vi.mocked(triggerAi).mockResolvedValue(undefined)
 })
 

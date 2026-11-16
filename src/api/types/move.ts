@@ -1,11 +1,11 @@
 import type { MoveName, PieceName } from './enums'
 import type { Square } from './catalogue'
 
-/** A legal move of a piece (item of GET /jogos/{id}/pecas/{casa}/possiveis-jogadas). */
+/** Fields read from a legal move returned by GET /jogos/{id}/possiveis-jogadas. */
 export interface PossibleMove {
   casaOrigem: Square
   casaDestino: Square
-  nome: MoveName
+  nome: MoveName | null
   peca: PieceName
   captura: boolean
   capturavel: boolean

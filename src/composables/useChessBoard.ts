@@ -2,7 +2,7 @@ import { computed, ref, watch, type Ref } from 'vue'
 import type { PieceType, Square } from '@/api/types/catalogue'
 import type { SideId, SquareName } from '@/api/types/enums'
 import type { GameSummary } from '@/api/types/game-summary'
-import { listPossibleMoves, makeMove } from '@/api/services/moves'
+import { listSidePossibleMoves, makeMove } from '@/api/services/moves'
 import { createBoardHouses } from '@/domain/board'
 import { orientForSide } from '@/domain/orientation'
 import { clearHighlights, markOrigin, markPossibleMoves } from '@/domain/highlights'
@@ -32,6 +32,8 @@ export function useChessBoard(options: ChessBoardOptions) {
     ((origin: SquareName, destination: SquareName) => makeMove(gameId, sideId, origin, destination))
   const request = useRequest()
   const houses = ref<BoardHouse[]>([])
+  const legalMoves = ref<Awaited<ReturnType<typeof listSidePossibleMoves>>>([])
+  const movesReady = ref(false)
 
   const orientedSquares = computed(() => orientForSide(squares.value, sideId))
 
@@ -48,11 +50,28 @@ export function useChessBoard(options: ChessBoardOptions) {
 
   watch([summary, squares, pieces], rebuild, { immediate: true })
 
+  watch(
+    summary,
+    async (current) => {
+      movesReady.value = false
+      legalMoves.value = []
+      houses.value = clearHighlights(houses.value)
+      if (!current || current.ladoIdAtual !== sideId || current.finalizado !== null) return
+      const moves = await request.perform(() => listSidePossibleMoves(gameId, sideId))
+      if (moves !== undefined && summary.value === current) {
+        legalMoves.value = moves
+        movesReady.value = true
+      }
+    },
+    { immediate: true },
+  )
+
   async function selectHouse(index: number): Promise<void> {
     const square = orientedSquares.value[index]
     if (!square) {
       return
     }
+    if (!movesReady.value) return
     const originIndex = houses.value.findIndex((house) => house.movementOrigin)
     const destination = houses.value.find(
       (house) => house.house === square.casa && house.possibleMovement,
@@ -68,12 +87,9 @@ export function useChessBoard(options: ChessBoardOptions) {
     }
 
     houses.value = clearHighlights(houses.value)
-    const moves = await request.perform(() => listPossibleMoves(gameId, sideId, square.casa))
-    if (!moves) {
-      return
-    }
+    const moves = legalMoves.value.filter((move) => move.casaOrigem.casa === square.casa)
     houses.value = markPossibleMoves(markOrigin(houses.value, index), moves)
   }
 
-  return { houses, selectHouse, loading: request.pending }
+  return { houses, selectHouse, loading: request.pending, movesReady }
 }

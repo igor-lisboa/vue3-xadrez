@@ -91,6 +91,8 @@ export const it: Messages = {
     moveDeclinesDraw: 'Se invece giochi una mossa, la proposta viene rifiutata.',
     opponentJoined: 'L’avversario si è unito alla partita!',
     connectionError: 'Errore di connessione con il server.',
+    yourTurn: 'Tocca a te',
+    opponentLastMove: (move) => `Ultima mossa dell'avversario: ${move}`,
   },
   labels: {
     sides: { 0: 'Bianco', 1: 'Nero' },
