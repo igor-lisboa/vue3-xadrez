@@ -93,6 +93,7 @@ Board behaviour:
 - **Turn.** When it is the player's turn and the legal moves have loaded successfully, the board border is bright green. A compact, non-blocking turn badge appears beside the game information at the same time; it does not require dismissal.
 - **Opponent's last move.** The game shows the latest move by the other side, with the piece name, origin and destination, and any capture, promotion or special-move detail. It uses the same localized description as Game review and refreshes after a move. While it is the player's turn, the origin has an amber inset outline and the destination has a cyan inset outline, or a red one for a capture. These outlines do not replace the board colours used to select the next move.
 - **AI X AI.** The board cannot be clicked; it only shows the game as it progresses.
+- **Sounds.** The game plays a short sound when the board position changes, with a distinct sound for captures; when the turn changes; when a pawn promotion becomes pending; and when a draw offer appears. Sounds are generated in the browser and need no audio assets.
 - Each square shows its piece as a picture from the piece set (section 4).
 
 Clocks:

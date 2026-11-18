@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { listPieceTypes, listSquares } from '@/api/services/catalogue'
 import { leaveGame } from '@/api/services/players'
@@ -16,6 +16,7 @@ import { useChessBoard } from '@/composables/useChessBoard'
 import { useDrawActions } from '@/composables/useDrawActions'
 import { useGameSocket } from '@/composables/useGameSocket'
 import { useGameState } from '@/composables/useGameState'
+import { useGameSounds } from '@/composables/useGameSounds'
 import { useOpponentLastMove } from '@/composables/useOpponentLastMove'
 import { useLocale } from '@/composables/useLocale'
 import { useLoader, useRequest } from '@/composables/useRequest'
@@ -31,6 +32,10 @@ const props = defineProps<{ gameId: number; sideId: SideId }>()
 const { messages } = useLocale()
 const router = useRouter()
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
+const sounds = useGameSounds()
+watch(summary, (current, previous) => {
+  if (current) sounds.changed(previous, current)
+})
 const { move: opponentMove, refresh: refreshOpponentMove } = useOpponentLastMove(
   props.gameId,
   props.sideId,
