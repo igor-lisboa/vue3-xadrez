@@ -6,11 +6,7 @@ type Sound = 'myMove' | 'opponentMove' | 'capture' | 'turn' | 'promotion' | 'dra
 const tones: Record<Sound, number[]> = {
   myMove: [440, 554],
   opponentMove: [392],
-<<<<<<< Updated upstream
-  capture: [330, 440],
-=======
   capture: [740, 554, 370],
->>>>>>> Stashed changes
   turn: [494, 587],
   promotion: [440, 554, 659],
   draw: [392, 494],
@@ -33,17 +29,12 @@ export function useGameSounds() {
       oscillator.type = sound === 'capture' ? 'triangle' : 'sine'
       oscillator.frequency.value = frequency
       gain.gain.setValueAtTime(0.0001, start)
-<<<<<<< Updated upstream
-      gain.gain.exponentialRampToValueAtTime(0.035, start + 0.025)
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.19)
-=======
       gain.gain.exponentialRampToValueAtTime(sound === 'capture' ? 0.045 : 0.035, start + 0.025)
       gain.gain.exponentialRampToValueAtTime(0.0001, start + (sound === 'capture' ? 0.16 : 0.19))
->>>>>>> Stashed changes
       oscillator.connect(gain)
       gain.connect(audio.destination)
       oscillator.start(start)
-      oscillator.stop(start + 0.14)
+      oscillator.stop(start + (sound === 'capture' ? 0.18 : 0.2))
     })
   }
 
@@ -55,16 +46,11 @@ export function useGameSounds() {
       const oldPieces = oldBoard.filter(Boolean).length
       const newPieces = newBoard.filter(Boolean).length
       const captured = newPieces < oldPieces
-<<<<<<< Updated upstream
-      const mover = previous.ladoIdAtual
-      play(captured ? 'capture' : mover === sideId ? 'myMove' : 'opponentMove')
-=======
       let sound: Sound
       if (captured) sound = 'capture'
       else if (previous.ladoIdAtual === sideId) sound = 'myMove'
       else sound = 'opponentMove'
       play(sound)
->>>>>>> Stashed changes
     }
     if (previous.ladoIdAtual !== current.ladoIdAtual) play('turn')
 
