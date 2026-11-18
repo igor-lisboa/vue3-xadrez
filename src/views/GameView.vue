@@ -34,7 +34,7 @@ const router = useRouter()
 const { summary, refresh } = useGameState(props.gameId, props.sideId)
 const sounds = useGameSounds()
 watch(summary, (current, previous) => {
-  if (current) sounds.changed(previous, current)
+  if (current) sounds.changed(previous, current, props.sideId)
 })
 const { move: opponentMove, refresh: refreshOpponentMove } = useOpponentLastMove(
   props.gameId,

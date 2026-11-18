@@ -1,13 +1,15 @@
 import type { GameSummary } from '@/api/types/game-summary'
+import type { SideId } from '@/api/types/enums'
 
-type Sound = 'move' | 'capture' | 'turn' | 'promotion' | 'draw'
+type Sound = 'myMove' | 'opponentMove' | 'capture' | 'turn' | 'promotion' | 'draw'
 
 const tones: Record<Sound, number[]> = {
-  move: [440],
-  capture: [330, 220],
-  turn: [587, 784],
-  promotion: [523, 659, 784],
-  draw: [392, 523],
+  myMove: [440, 554],
+  opponentMove: [392],
+  capture: [330, 440],
+  turn: [494, 587],
+  promotion: [440, 554, 659],
+  draw: [392, 494],
 }
 
 /** Generates short interface sounds without downloading or caching audio files. */
@@ -27,8 +29,8 @@ export function useGameSounds() {
       oscillator.type = 'sine'
       oscillator.frequency.value = frequency
       gain.gain.setValueAtTime(0.0001, start)
-      gain.gain.exponentialRampToValueAtTime(0.12, start + 0.015)
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.13)
+      gain.gain.exponentialRampToValueAtTime(0.035, start + 0.025)
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.19)
       oscillator.connect(gain)
       gain.connect(audio.destination)
       oscillator.start(start)
@@ -36,14 +38,16 @@ export function useGameSounds() {
     })
   }
 
-  function changed(previous: GameSummary | null, current: GameSummary): void {
+  function changed(previous: GameSummary | null, current: GameSummary, sideId: SideId): void {
     if (!previous) return
     const oldBoard = previous.tabuleiro.flat()
     const newBoard = current.tabuleiro.flat()
     if (oldBoard.some((cell, index) => cell !== newBoard[index])) {
       const oldPieces = oldBoard.filter(Boolean).length
       const newPieces = newBoard.filter(Boolean).length
-      play(newPieces < oldPieces ? 'capture' : 'move')
+      const captured = newPieces < oldPieces
+      const mover = previous.ladoIdAtual
+      play(captured ? 'capture' : mover === sideId ? 'myMove' : 'opponentMove')
     }
     if (previous.ladoIdAtual !== current.ladoIdAtual) play('turn')
 
